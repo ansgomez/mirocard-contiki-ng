@@ -350,9 +350,10 @@ rf_ble_beacon_single(uint8_t channel, uint8_t *data, uint8_t len)
       return;
     }
 
+    PRINTF("rf_ble_beacon_single: abort primary mode\n");
     rf_core_primary_mode_abort();
   } else {
-
+    
     oscillators_request_hf_xosc();
 
     /* We were off: Boot the CPE */
