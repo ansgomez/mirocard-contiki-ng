@@ -1,0 +1,8 @@
+### Will allow the inclusion of the correct CPU makefile
+CPU_FAMILY = cc26xx
+
+### Add to the source dirs
+CONTIKI_TARGET_DIRS += transient/cc2650
+
+### Include the common transient makefile
+include $(PLATFORM_ROOT_DIR)/transient/Makefile.transient
