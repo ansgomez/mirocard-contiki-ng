@@ -128,34 +128,34 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
- * \name SPI IOID mapping
+ * \name AM0815 RTC SPI IOID mapping
  *
  * @{
  */
-#define EXT_RTC_SPI_CONTROLLER    SPI_CONTROLLER_SPI0
+#define AM0815_SPI_CONTROLLER     SPI_CONTROLLER_SPI0
 
-#define BOARD_IOID_RTC_SCK        IOID_21
-#define BOARD_IOID_RTC_MOSI       IOID_18
-#define BOARD_IOID_RTC_MISO       IOID_22
-#define BOARD_IOID_RTC_CS         IOID_20
+#define BOARD_IOID_AM0815_SCK     IOID_21
+#define BOARD_IOID_AM0815_MOSI    IOID_18
+#define BOARD_IOID_AM0815_MISO    IOID_22
+#define BOARD_IOID_AM0815_CS      IOID_20
 
-#define EXT_RTC_SPI_PIN_SCK       21
-#define EXT_RTC_SPI_PIN_MOSI      18
-#define EXT_RTC_SPI_PIN_MISO      22
-#define EXT_RTC_SPI_PIN_CS        20
+#define AM0815_SPI_PIN_SCK        21
+#define AM0815_SPI_PIN_MOSI       18
+#define AM0815_SPI_PIN_MISO       22
+#define AM0815_SPI_PIN_CS         20
 
-#define EXT_RTC_DEVICE_ID         0x14
-#define EXT_RTC_MID               0xC2
+#define AM0815_DEVICE_ID          0x14
+#define AM0815_MID                0xC2
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
- * \name RTC IOID mapping
+ * \name AM0815 RTC IOID mapping
  *
  * Those values are not meant to be modified by the user
  * @{
  */
-#define BOARD_IOID_RTC_IRQ        IOID_19
-#define BOARD_IOID_RTC_CHARGE     IOID_14
+#define BOARD_IOID_AM0815_IRQ     IOID_19
+#define BOARD_IOID_AM0815_CHARGE  IOID_14
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -178,8 +178,6 @@
 
 #define EXT_FRAM_PRODUCT_ID_LOW   0x00
 #define EXT_FRAM_PRODUCT_ID_HIGH  0x24
-
-#define EXT_FRAM_PROGRAM_PAGE_SIZE 256
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

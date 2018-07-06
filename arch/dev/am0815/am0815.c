@@ -38,7 +38,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-
 /*---------------------------------------------------------------------------*/
 /* Log configuration */
 #define LOG_MODULE                    "am0815"

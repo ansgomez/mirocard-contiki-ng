@@ -5,6 +5,7 @@ CONTIKI_TARGET_DIRS += transient
 BOARD_SOURCEFILES += board.c board-buttons.c
 
 MODULES += arch/dev/ext-fram
+MODULES += arch/dev/am0815
 
 ### Signal that we can be programmed with cc2538-bsl
 BOARD_SUPPORTS_BSL=1

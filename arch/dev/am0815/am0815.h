@@ -28,7 +28,6 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*---------------------------------------------------------------------------*/
 #ifndef AM0815_H_
 #define AM0815_H_
@@ -136,6 +135,7 @@ bool am0815_write_sram(spi_device_t *conf, uint8_t offset, uint8_t length, const
  *
  */
 bool am0815_init(spi_device_t *conf);
+
 /*---------------------------------------------------------------------------*/
 #endif /* AM0815_H_ */
 /*---------------------------------------------------------------------------*/

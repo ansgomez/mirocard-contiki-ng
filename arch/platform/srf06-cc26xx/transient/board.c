@@ -98,6 +98,9 @@ board_init()
   /* initialize external FRAM memory without sending to sleep */
   ext_fram_open(NULL);
 
+  /* initialize AM0815 RTC */
+  am0815_init(NULL);
+
   /* register LPM module to restore peripheral power on wakeup */
   lpm_register_module(&launchpad_module);
 
