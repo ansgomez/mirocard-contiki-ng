@@ -92,7 +92,7 @@ board_init()
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
 
-  /* registre LPM module to restore peripheral power on wakeup */
+  /* register LPM module to restore peripheral power on wakeup */
   lpm_register_module(&launchpad_module);
 
   /* For unsupported peripherals, select a default pin configuration */

@@ -38,7 +38,7 @@
  * @{
  *
  * \file
- * Header file with definitions related to LaunchPad peripherals
+ * Header file with definitions related to Transient Node peripherals
  *
  * \note   Do not include this file directly.
  */
