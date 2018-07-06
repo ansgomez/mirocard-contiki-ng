@@ -42,6 +42,9 @@
  * \brief Initialize storage driver.
  * \param conf SPI bus configuration struct. NULL for default.
  * \return True when successful.
+ * 
+ * \note A delay of 400us needs to be waited before reading/writing when the
+ * device was in sleep mode (default after init)
  */
 bool ext_fram_open(spi_device_t *conf);
 

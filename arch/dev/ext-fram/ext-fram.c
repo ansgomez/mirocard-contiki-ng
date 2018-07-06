@@ -5,44 +5,47 @@
 #include "gpio-hal.h"
 #include "sys/log.h"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 /*---------------------------------------------------------------------------*/
 #ifndef EXT_FRAM_SPI_CONTROLLER
 
-#define EXT_FRAM_SPI_CONTROLLER      0xFF /* No controller */
+#define EXT_FRAM_SPI_CONTROLLER       0xFF /* No controller */
 
-#define EXT_FRAM_SPI_PIN_SCK         GPIO_HAL_PIN_UNKNOWN
-#define EXT_FRAM_SPI_PIN_MOSI        GPIO_HAL_PIN_UNKNOWN
-#define EXT_FRAM_SPI_PIN_MISO        GPIO_HAL_PIN_UNKNOWN
-#define EXT_FRAM_SPI_PIN_CS          GPIO_HAL_PIN_UNKNOWN
+#define EXT_FRAM_SPI_PIN_SCK          GPIO_HAL_PIN_UNKNOWN
+#define EXT_FRAM_SPI_PIN_MOSI         GPIO_HAL_PIN_UNKNOWN
+#define EXT_FRAM_SPI_PIN_MISO         GPIO_HAL_PIN_UNKNOWN
+#define EXT_FRAM_SPI_PIN_CS           GPIO_HAL_PIN_UNKNOWN
 
-#define EXT_FRAM_PRODUCT_ID_LOW      0xFF
-#define EXT_FRAM_PRODUCT_ID_HIGH     0xFF
+#define EXT_FRAM_PRODUCT_ID_LOW       0xFF
+#define EXT_FRAM_PRODUCT_ID_HIGH      0xFF
 
-#define EXT_FRAM_PROGRAM_PAGE_SIZE   256
+#define EXT_FRAM_PROGRAM_PAGE_SIZE    256
 
 #endif /* EXT_FRAM_SPI_CONTROLLER */
 /*---------------------------------------------------------------------------*/
 /* Log configuration */
-#define LOG_MODULE "ext-fram"
-#define LOG_LEVEL LOG_LEVEL_NONE
+#define LOG_MODULE                    "ext-fram"
+#define LOG_LEVEL                     LOG_LEVEL_NONE
+//#define LOG_LEVEL                     LOG_LEVEL_DBG
 /*---------------------------------------------------------------------------*/
 /* FRAM instruction codes */
-#define FRAM_CODE_READ             0x03 /**< Read Data */
-#define FRAM_CODE_FAST_READ        0x0B /**< Fast Read Data */
-#define FRAM_CODE_READ_STATUS      0x05 /**< Read Status Register */
-#define FRAM_CODE_WRITE_STATUS     0x01 /**< Write Status Register */
-#define FRAM_CODE_WRITE_ENABLE     0x06 /**< Write Enable */
-#define FRAM_CODE_WRITE            0x02 /**< Write Data */
-#define FRAM_CODE_READ_ID          0x9F /**< Read Device ID */
-
-#define FRAM_CODE_SLEEP            0xB9 /**< Enter sleep mode */
+#define FRAM_CODE_WRITE_ENABLE        0x06 /**< Write Enable */
+#define FRAM_CODE_WRITE_DISABLE       0x04 /**< Write Disable */
+#define FRAM_CODE_READ_STATUS         0x05 /**< Read Status Register */
+#define FRAM_CODE_WRITE_STATUS        0x01 /**< Write Status Register */
+#define FRAM_CODE_READ                0x03 /**< Read Data */
+#define FRAM_CODE_FAST_READ           0x0B /**< Fast Read Data */
+#define FRAM_CODE_WRITE               0x02 /**< Write Data */
+#define FRAM_CODE_SLEEP               0xB9 /**< Enter sleep mode */
+#define FRAM_CODE_READ_ID             0x9F /**< Read Device ID */
+#define FRAM_CODE_READ_SERIAL         0x9F /**< Read Device Serial Number */
 /*---------------------------------------------------------------------------*/
-#define VERIFY_PART_LOCKED          -2
-#define VERIFY_PART_ERROR           -1
-#define VERIFY_PART_POWERED_DOWN     0
-#define VERIFY_PART_OK               1
+// #define VERIFY_PART_LOCKED           -2
+// #define VERIFY_PART_ERROR            -1
+// #define VERIFY_PART_POWERED_DOWN      0
+// #define VERIFY_PART_OK                1
 /*---------------------------------------------------------------------------*/
 static spi_device_t fram_spi_configuration_default = {
   .spi_controller = EXT_FRAM_SPI_CONTROLLER,
@@ -52,7 +55,7 @@ static spi_device_t fram_spi_configuration_default = {
   .pin_spi_cs = EXT_FRAM_SPI_PIN_CS,
   .spi_bit_rate = 4000000,
   .spi_pha = 0,
-  .spi_pol = 0
+  .spi_pol = 0,
 };
 /*---------------------------------------------------------------------------*/
 /**
@@ -74,8 +77,10 @@ static bool
 select_on_bus(spi_device_t *fram_spi_configuration)
 {
   if(spi_select(fram_spi_configuration) == SPI_DEV_STATUS_OK) {
+    LOG_DBG("SPI selected\n");
     return true;
   }
+  LOG_DBG("SPI select FAILED\n");
   return false;
 }
 /*---------------------------------------------------------------------------*/
@@ -86,6 +91,7 @@ static void
 deselect(spi_device_t *fram_spi_configuration)
 {
   spi_deselect(fram_spi_configuration);
+  LOG_DBG("SPI deselected\n");
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -165,8 +171,10 @@ write_enable(spi_device_t *fram_spi_configuration)
   deselect(fram_spi_configuration);
 
   if(ret == false) {
+    LOG_DBG("write enable FAILED\n");
     return false;
   }
+  LOG_DBG("write enabled\n");
   return true;
 }
 /*---------------------------------------------------------------------------*/
@@ -179,19 +187,24 @@ ext_fram_open(spi_device_t *conf)
 
   /* Check if platform has ext-fram */
   if(fram_spi_configuration->pin_spi_sck == GPIO_HAL_PIN_UNKNOWN) {
+    LOG_WARN("FRAM not present in platform!\n");
     return false;
   }
 
   if(spi_acquire(fram_spi_configuration) != SPI_DEV_STATUS_OK) {
+    LOG_DBG("SPI write acquire FAILED\n");
     return false;
   }
-  /* Default output to clear chip select */
+
+  /* Toggle CS to wakeup device */
+  if(select_on_bus(fram_spi_configuration) == false) {
+    LOG_DBG("FRAM wakeup FAILED\n");
+    return false;
+  }
   deselect(fram_spi_configuration);
 
-  /* Put the part is standby mode */
-  power_sleep(fram_spi_configuration);
-
   return true;
+
   // if(verify_part(fram_spi_configuration) == VERIFY_PART_OK) {
   //   return true;
   // }
@@ -297,12 +310,14 @@ ext_fram_write(spi_device_t *conf, uint32_t offset, uint32_t length, const uint8
     return false;
   }
 
+  LOG_DBG("set write address\n");
   if(spi_write(fram_spi_configuration, wbuf, sizeof(wbuf)) != SPI_DEV_STATUS_OK) {
     /* failure */
     deselect(fram_spi_configuration);
     return false;
   }
 
+  LOG_DBG("write data\n");
   if(spi_write(fram_spi_configuration, buf, ilen) != SPI_DEV_STATUS_OK) {
     /* failure */
     deselect(fram_spi_configuration);
