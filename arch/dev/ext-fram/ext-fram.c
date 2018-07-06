@@ -39,6 +39,11 @@
 #include <stdint.h>
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
+/* Log configuration */
+#define LOG_MODULE                    "ext-fram"
+#define LOG_LEVEL                     LOG_LEVEL_NONE
+//#define LOG_LEVEL                     LOG_LEVEL_DBG
+/*---------------------------------------------------------------------------*/
 #ifndef EXT_FRAM_SPI_CONTROLLER
 
 #define EXT_FRAM_SPI_CONTROLLER       0xFF /* No controller */
@@ -54,11 +59,6 @@
 #define EXT_FRAM_PROGRAM_PAGE_SIZE    256
 
 #endif /* EXT_FRAM_SPI_CONTROLLER */
-/*---------------------------------------------------------------------------*/
-/* Log configuration */
-#define LOG_MODULE                    "ext-fram"
-#define LOG_LEVEL                     LOG_LEVEL_NONE
-//#define LOG_LEVEL                     LOG_LEVEL_DBG
 /*---------------------------------------------------------------------------*/
 /* FRAM instruction codes */
 #define FRAM_CODE_WRITE_ENABLE        0x06 /**< Write Enable */
@@ -104,9 +104,9 @@ get_spi_conf(spi_device_t *conf)
  * Clear external flash CSN line
  */
 static bool
-select_on_bus(spi_device_t *fram_spi_configuration)
+select_on_bus(spi_device_t *spi_config)
 {
-  if(spi_select(fram_spi_configuration) == SPI_DEV_STATUS_OK) {
+  if(spi_select(spi_config) == SPI_DEV_STATUS_OK) {
     LOG_DBG("SPI selected\n");
     return true;
   }
@@ -118,9 +118,9 @@ select_on_bus(spi_device_t *fram_spi_configuration)
  * Set external flash CSN line
  */
 static void
-deselect(spi_device_t *fram_spi_configuration)
+deselect(spi_device_t *spi_config)
 {
-  spi_deselect(fram_spi_configuration);
+  spi_deselect(spi_config);
   LOG_DBG("SPI deselected\n");
 }
 /*---------------------------------------------------------------------------*/
@@ -132,23 +132,23 @@ deselect(spi_device_t *fram_spi_configuration)
  *         was powered down
  */
 // static uint8_t
-// verify_part(spi_device_t *fram_spi_configuration)
+// verify_part(spi_device_t *spi_config)
 // {
 //   const uint8_t wbuf[] = { FRAM_CODE_READ_ID };
 //   uint8_t rbuf[8] = { 0 };
 //   bool ret;
 
-//   if(select_on_bus(fram_spi_configuration) == false) {
+//   if(select_on_bus(spi_config) == false) {
 //     return VERIFY_PART_LOCKED;
 //   }
 
-//   if(spi_write(fram_spi_configuration, wbuf, sizeof(wbuf)) != SPI_DEV_STATUS_OK) {
-//     deselect(fram_spi_configuration);
+//   if(spi_write(spi_config, wbuf, sizeof(wbuf)) != SPI_DEV_STATUS_OK) {
+//     deselect(spi_config);
 //     return VERIFY_PART_ERROR;
 //   }
 
-//   ret = spi_read(fram_spi_configuration, rbuf, sizeof(rbuf));
-//   deselect(fram_spi_configuration);
+//   ret = spi_read(spi_config, rbuf, sizeof(rbuf));
+//   deselect(spi_config);
 //   if(ret != SPI_DEV_STATUS_OK) {
 //     return VERIFY_PART_ERROR;
 //   }
@@ -166,19 +166,19 @@ deselect(spi_device_t *fram_spi_configuration)
  * \brief Put the device in sleep mode.
  */
 static bool
-power_sleep(spi_device_t *fram_spi_configuration)
+power_sleep(spi_device_t *spi_config)
 {
   uint8_t cmd;
   bool success;
 
   cmd = FRAM_CODE_SLEEP;
-  if(select_on_bus(fram_spi_configuration) == false) {
+  if(select_on_bus(spi_config) == false) {
     return false;
   }
 
-  success = (spi_write_byte(fram_spi_configuration, cmd) == SPI_DEV_STATUS_OK);
+  success = (spi_write_byte(spi_config, cmd) == SPI_DEV_STATUS_OK);
 
-  deselect(fram_spi_configuration);
+  deselect(spi_config);
 
   return success;
 }
@@ -188,17 +188,17 @@ power_sleep(spi_device_t *fram_spi_configuration)
  * \return True when successful.
  */
 static bool
-write_enable(spi_device_t *fram_spi_configuration)
+write_enable(spi_device_t *spi_config)
 {
   bool ret;
   const uint8_t wbuf[] = { FRAM_CODE_WRITE_ENABLE };
 
-  if(select_on_bus(fram_spi_configuration) == false) {
+  if(select_on_bus(spi_config) == false) {
     return false;
   }
 
-  ret = (spi_write(fram_spi_configuration, wbuf, sizeof(wbuf)) == SPI_DEV_STATUS_OK);
-  deselect(fram_spi_configuration);
+  ret = (spi_write(spi_config, wbuf, sizeof(wbuf)) == SPI_DEV_STATUS_OK);
+  deselect(spi_config);
 
   if(ret == false) {
     LOG_DBG("write enable FAILED\n");
@@ -211,36 +211,34 @@ write_enable(spi_device_t *fram_spi_configuration)
 bool
 ext_fram_open(spi_device_t *conf)
 {
-  spi_device_t *fram_spi_configuration;
-
-  fram_spi_configuration = get_spi_conf(conf);
+  spi_device_t *spi_config = get_spi_conf(conf);
 
   /* Check if platform has ext-fram */
-  if(fram_spi_configuration->pin_spi_sck == GPIO_HAL_PIN_UNKNOWN) {
+  if(spi_config->pin_spi_sck == GPIO_HAL_PIN_UNKNOWN) {
     LOG_WARN("FRAM not present in platform!\n");
     return false;
   }
 
-  if(spi_acquire(fram_spi_configuration) != SPI_DEV_STATUS_OK) {
+  if(spi_acquire(spi_config) != SPI_DEV_STATUS_OK) {
     LOG_DBG("SPI write acquire FAILED\n");
     return false;
   }
 
   /* Toggle CS to wakeup device */
-  if(select_on_bus(fram_spi_configuration) == false) {
+  if(select_on_bus(spi_config) == false) {
     LOG_DBG("FRAM wakeup FAILED\n");
     return false;
   }
-  deselect(fram_spi_configuration);
+  deselect(spi_config);
 
   return true;
 
-  // if(verify_part(fram_spi_configuration) == VERIFY_PART_OK) {
+  // if(verify_part(spi_config) == VERIFY_PART_OK) {
   //   return true;
   // }
 
   // /* Failed to verify */
-  // spi_release(fram_spi_configuration);
+  // spi_release(spi_config);
   // return false;
 }
 /*---------------------------------------------------------------------------*/
@@ -248,15 +246,13 @@ bool
 ext_fram_close(spi_device_t *conf)
 {
   bool ret;
-  spi_device_t *fram_spi_configuration;
-
-  fram_spi_configuration = get_spi_conf(conf);
+  spi_device_t *spi_config = get_spi_conf(conf);
 
   /* Put the part in low power mode */
-  ret = power_sleep(fram_spi_configuration);
+  ret = power_sleep(spi_config);
 
   /* SPI is released no matter if power_down() succeeds or fails */
-  if(spi_release(fram_spi_configuration) != SPI_DEV_STATUS_OK) {
+  if(spi_release(spi_config) != SPI_DEV_STATUS_OK) {
     return false;
   }
 
@@ -269,12 +265,12 @@ ext_fram_read(spi_device_t *conf, uint32_t offset, uint32_t length, uint8_t *buf
   uint8_t wbuf[4];
   bool ret;
 
-  spi_device_t *fram_spi_configuration;
+  spi_device_t *spi_config;
 
-  fram_spi_configuration = get_spi_conf(conf);
+  spi_config = get_spi_conf(conf);
 
   // /* Wait till previous erase/program operation completes */
-  // if(wait_ready(fram_spi_configuration) == false) {
+  // if(wait_ready(spi_config) == false) {
   //   return false;
   // }
 
@@ -287,19 +283,19 @@ ext_fram_read(spi_device_t *conf, uint32_t offset, uint32_t length, uint8_t *buf
   wbuf[2] = (offset >> 8) & 0xff;
   wbuf[3] = offset & 0xff;
 
-  if(select_on_bus(fram_spi_configuration) == false) {
+  if(select_on_bus(spi_config) == false) {
     return false;
   }
 
-  if(spi_write(fram_spi_configuration, wbuf, sizeof(wbuf)) != SPI_DEV_STATUS_OK) {
+  if(spi_write(spi_config, wbuf, sizeof(wbuf)) != SPI_DEV_STATUS_OK) {
     /* failure */
-    deselect(fram_spi_configuration);
+    deselect(spi_config);
     return false;
   }
 
-  ret = (spi_read(fram_spi_configuration, buf, length) == SPI_DEV_STATUS_OK);
+  ret = (spi_read(spi_config, buf, length) == SPI_DEV_STATUS_OK);
 
-  deselect(fram_spi_configuration);
+  deselect(spi_config);
 
   return ret;
 }
@@ -308,24 +304,16 @@ bool
 ext_fram_write(spi_device_t *conf, uint32_t offset, uint32_t length, const uint8_t *buf)
 {
   uint8_t wbuf[4];
-  uint32_t ilen; /* interim length per instruction */
 
-  spi_device_t *fram_spi_configuration;
-
-  fram_spi_configuration = get_spi_conf(conf);
+  spi_device_t *spi_config = get_spi_conf(conf);
 
   // /* Wait till previous erase/program operation completes */
-  // if(wait_ready(fram_spi_configuration) == false) {
+  // if(wait_ready(spi_config) == false) {
   //   return false;
   // }
 
-  if(write_enable(fram_spi_configuration) == false) {
+  if(write_enable(spi_config) == false) {
     return false;
-  }
-
-  ilen = EXT_FRAM_PROGRAM_PAGE_SIZE - (offset % EXT_FRAM_PROGRAM_PAGE_SIZE);
-  if(length < ilen) {
-    ilen = length;
   }
 
   wbuf[0] = FRAM_CODE_WRITE;
@@ -333,28 +321,25 @@ ext_fram_write(spi_device_t *conf, uint32_t offset, uint32_t length, const uint8
   wbuf[2] = (offset >> 8) & 0xff;
   wbuf[3] = offset & 0xff;
 
-  offset += ilen;
-  length -= ilen;
-
-  if(select_on_bus(fram_spi_configuration) == false) {
+  if(select_on_bus(spi_config) == false) {
     return false;
   }
 
   LOG_DBG("set write address\n");
-  if(spi_write(fram_spi_configuration, wbuf, sizeof(wbuf)) != SPI_DEV_STATUS_OK) {
+  if(spi_write(spi_config, wbuf, sizeof(wbuf)) != SPI_DEV_STATUS_OK) {
     /* failure */
-    deselect(fram_spi_configuration);
+    deselect(spi_config);
     return false;
   }
 
   LOG_DBG("write data\n");
-  if(spi_write(fram_spi_configuration, buf, ilen) != SPI_DEV_STATUS_OK) {
+  if(spi_write(spi_config, buf, length) != SPI_DEV_STATUS_OK) {
     /* failure */
-    deselect(fram_spi_configuration);
+    deselect(spi_config);
     return false;
   }
-  buf += ilen;
-  deselect(fram_spi_configuration);
+
+  deselect(spi_config);
 
   return true;
 }
