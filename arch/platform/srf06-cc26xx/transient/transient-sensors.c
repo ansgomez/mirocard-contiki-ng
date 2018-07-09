@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
  * Copyright (c) 2018, Swiss Federal Institute of Technology (ETH Zurich)
  * All rights reserved.
  *
@@ -29,33 +29,19 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*---------------------------------------------------------------------------*/
-/** \addtogroup cc26xx-transient-node
- * @{
- *
- * \defgroup transient-peripherals Transient Node peripherals
- *
- * Defines related to Transient Node peripherals.
- *
+/**
+ * \addtogroup transient-cc26xx-peripherals
  * @{
  *
  * \file
- * Header file with definitions related to Transient Node peripherals
- *
- * \note   Do not include this file directly.
+ * Generic module controlling sensors on Transient Sensor Node
  */
 /*---------------------------------------------------------------------------*/
-#ifndef BOARD_PERIPHERALS_H_
-#define BOARD_PERIPHERALS_H_
-/*---------------------------------------------------------------------------*/
-#include "ext-fram.h"
-#include "am0815.h"
+#include "contiki.h"
+#include "lib/sensors.h"
 #include "sht3x-sensor.h"
 /*---------------------------------------------------------------------------*/
-#define BOARD_CONF_HAS_SENSORS  1
+/** \brief Exports a global symbol to be used by the sensor API */
+SENSORS(&sht3x_sensor);
 /*---------------------------------------------------------------------------*/
-#endif /* BOARD_PERIPHERALS_H_ */
-/*---------------------------------------------------------------------------*/
-/**
- * @}
- * @}
- */
+/** @} */
