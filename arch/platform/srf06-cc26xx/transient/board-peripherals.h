@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2015, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2018, Swiss Federal Institute of Technology (ETH Zurich)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*---------------------------------------------------------------------------*/
-/** \addtogroup cc26xx-srf-tag
+/** \addtogroup cc26xx-transient-node
  * @{
  *
  * \defgroup transient-peripherals Transient Node peripherals
@@ -49,7 +50,7 @@
 #include "ext-fram.h"
 #include "am0815.h"
 /*---------------------------------------------------------------------------*/
-#define BOARD_CONF_HAS_SENSORS 0
+#define BOARD_CONF_HAS_SENSORS  0
 /*---------------------------------------------------------------------------*/
 #endif /* BOARD_PERIPHERALS_H_ */
 /*---------------------------------------------------------------------------*/

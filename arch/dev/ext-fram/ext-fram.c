@@ -42,7 +42,6 @@
 /* Log configuration */
 #define LOG_MODULE                    "ext-fram"
 #define LOG_LEVEL                     LOG_LEVEL_NONE
-//#define LOG_LEVEL                     LOG_LEVEL_DBG
 /*---------------------------------------------------------------------------*/
 #ifndef EXT_FRAM_SPI_CONTROLLER
 
@@ -274,10 +273,6 @@ ext_fram_read(spi_device_t *conf, uint32_t offset, uint32_t length, uint8_t *buf
   //   return false;
   // }
 
-  /*
-   * SPI is driven with very low frequency (1MHz < 33MHz fR spec)
-   * in this implementation, hence it is not necessary to use fast read.
-   */
   wbuf[0] = FRAM_CODE_READ;
   wbuf[1] = (offset >> 16) & 0xff;
   wbuf[2] = (offset >> 8) & 0xff;

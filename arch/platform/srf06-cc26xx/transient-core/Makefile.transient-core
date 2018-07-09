@@ -5,4 +5,4 @@ CONTIKI_TARGET_DIRS += transient-core
 BOARD_SOURCEFILES += board.c board-buttons.c
 
 ### Signal that we can be programmed with cc2538-bsl
-BOARD_SUPPORTS_BSL=1
+BOARD_SUPPORTS_BSL = 1
