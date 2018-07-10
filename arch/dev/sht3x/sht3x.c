@@ -109,6 +109,14 @@ select_on_bus(void *conf)
   board_i2c_select(SHT3X_I2C_ADDRESS);
 }
 /*---------------------------------------------------------------------------*/
+static void
+deselect(void *conf)
+{
+  // deselect on I2C, reseting I2C interface
+  LOG_DBG("I2C deselect\n");
+  board_i2c_deselect();
+}
+/*---------------------------------------------------------------------------*/
 bool
 sht3x_read(void *conf, uint8_t *rbuf, uint8_t length)
 {
@@ -147,14 +155,11 @@ sht3x_write(void *conf, uint16_t command)
 bool
 sht3x_init(void *conf)
 {
-  // nothing needed to initialize, but perform soft reset and clear status.
-  bool ret;
-  ret = sht3x_soft_reset(conf);
-  if (!ret) {
-    return false;
-  }
+  // deselect to reset I2C to known state
+  deselect(conf);
 
-  return sht3x_clear_status(conf);
+  // no sensor specific configuration needed
+  return true;
 }
 /*---------------------------------------------------------------------------*/
 bool
