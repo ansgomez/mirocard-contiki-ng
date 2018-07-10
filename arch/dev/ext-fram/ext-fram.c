@@ -33,13 +33,13 @@
 #include "ext-fram.h"
 #include "dev/spi.h"
 #include "gpio-hal.h"
-#include "sys/log.h"
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
 /* Log configuration */
+#include "sys/log.h"
 #define LOG_MODULE                    "ext-fram"
 #define LOG_LEVEL                     LOG_LEVEL_NONE
 /*---------------------------------------------------------------------------*/

@@ -31,7 +31,6 @@
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "gpio-hal.h"
-#include "sys/log.h"
 #include "ti-lib.h"
 #include "board-i2c.h"
 #include "sht3x.h"
@@ -41,8 +40,9 @@
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
 /* Log configuration */
-#define LOG_MODULE                    "sht-3x"
-#define LOG_LEVEL                     LOG_LEVEL_DBG
+#include "sys/log.h"
+#define LOG_MODULE                    "sht3x"
+#define LOG_LEVEL                     LOG_LEVEL_NONE
 /*---------------------------------------------------------------------------*/
 #ifndef SHT3X_I2C_CONTROLLER
 

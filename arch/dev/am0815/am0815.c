@@ -32,7 +32,6 @@
 #include "contiki.h"
 #include "dev/spi.h"
 #include "gpio-hal.h"
-#include "sys/log.h"
 #include "am0815.h"
 
 #include <stdbool.h>
@@ -40,6 +39,7 @@
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
 /* Log configuration */
+#include "sys/log.h"
 #define LOG_MODULE                    "am0815"
 #define LOG_LEVEL                     LOG_LEVEL_NONE
 /*---------------------------------------------------------------------------*/
