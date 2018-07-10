@@ -231,10 +231,10 @@
  */
 #define BOARD_IOID_DIO0           IOID_0
 #define BOARD_IOID_DIO1           IOID_1
-// #define BOARD_IOID_DIO2          IOID_2  // UART
-// #define BOARD_IOID_DIO3          IOID_3  // UART
-#define BOARD_IOID_DIO4           IOID_4
-#define BOARD_IOID_DIO5           IOID_5
+//#define BOARD_IOID_DIO2           IOID_2  // UART
+//#define BOARD_IOID_DIO3           IOID_3  // UART
+//#define BOARD_IOID_DIO4           IOID_4  // I2C
+//#define BOARD_IOID_DIO5           IOID_5  // I2C
 //#define BOARD_IOID_DIO6           IOID_6  //SHT_RESET
 //#define BOARD_IOID_DIO7           IOID_7  //SHT_ALERT
 //#define BOARD_IOID_FRAM_MISO      IOID_8  //FRAM

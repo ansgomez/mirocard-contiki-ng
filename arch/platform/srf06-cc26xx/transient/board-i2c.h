@@ -46,9 +46,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 /*---------------------------------------------------------------------------*/
-#define BOARD_I2C_INTERFACE_0     0
-#define BOARD_I2C_INTERFACE_1     1
-/*---------------------------------------------------------------------------*/
 /**
  * \brief Put the I2C controller in a known state
  *

@@ -86,23 +86,15 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
- * \name State FLAG IOID mappings
+ * \name State indicator pin IOID mappings
  *
  * PIN configuration for the use of external state indicator pins
  * @{
  */
 #define BOARD_IOID_GPIO_1         IOID_12
 #define BOARD_IOID_GPIO_2         IOID_13
-/** @} */
-/*---------------------------------------------------------------------------*/
-/**
- * \name SHT31 sensor IOID mappings
- *
- * PIN configuration for the use of external pins, to be used with the RocketLogger
- * @{
- */
-#define BOARD_IOID_SHT_RESET      IOID_2
-#define BOARD_IOID_SHT_ALERT      IOID_3
+#define BOARD_IOID_GPIO_3         IOID_2
+#define BOARD_IOID_GPIO_4         IOID_3
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -122,7 +114,7 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
- * \brief EMU interface IOID mappings
+ * \name Energy Management Unit interface IOID mappings
  *
  * Those values are not meant to be modified by the user
  * @{

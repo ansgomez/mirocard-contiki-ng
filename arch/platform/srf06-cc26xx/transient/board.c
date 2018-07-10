@@ -99,8 +99,26 @@ board_init()
   /* initialize external FRAM memory without sending to sleep */
   ext_fram_open(NULL);
 
-  /* initialize AM0815 RTC */
+  /* initialize AM0815 RTC and related GPIOs */
   am0815_init(NULL);
+
+  gpio_hal_arch_pin_set_output(BOARD_IOID_AM0815_CHARGE);
+  gpio_hal_arch_clear_pin(BOARD_IOID_AM0815_CHARGE);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_AM0815_IRQ);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_AM0815_IRQ, GPIO_HAL_PIN_CFG_PULL_DOWN);
+
+  /* initialize SHT3x sensor related GPIOs */
+  // TODO: to be dropped in v2 platform
+  gpio_hal_arch_pin_set_output(BOARD_IOID_SHT_RESET);
+  gpio_hal_arch_set_pin(BOARD_IOID_SHT_RESET);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_SHT_ALERT);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_SHT_ALERT, GPIO_HAL_PIN_CFG_PULL_DOWN);
+
+  /* initialize general purpose GPIO_x */
+  gpio_hal_arch_pin_set_output(BOARD_IOID_GPIO_1);
+  gpio_hal_arch_clear_pin(BOARD_IOID_GPIO_1);
+  gpio_hal_arch_pin_set_output(BOARD_IOID_GPIO_2);
+  gpio_hal_arch_clear_pin(BOARD_IOID_GPIO_2);
 
   /* register LPM module to restore peripheral power on wakeup */
   lpm_register_module(&launchpad_module);
