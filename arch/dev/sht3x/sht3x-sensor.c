@@ -33,28 +33,48 @@
 #include "sht3x.h"
 #include "sht3x-sensor.h"
 
+#include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
 #define SHT3X_STATE_SLEEP     			0
 #define SHT3X_STATE_ACTIVE       		1
 #define SHT3X_STATE_DATA_READY   		2
-#define SHT3X_TYPE_TEMPERATURE      0
-#define SHT3X_TYPE_HUMIDITY         1
 /*---------------------------------------------------------------------------*/
 static int sht3x_state = SHT3X_STATE_SLEEP;
+static bool sht3x_values_updated[2] = {false, false};
+static uint16_t sht3x_raw_values[2] = {0, 0};
 /*---------------------------------------------------------------------------*/
 static int value(int type)
 {
-  uint16_t temperature_raw, humidity_raw;
+  // return most negative interger on invalid type
+  if (type != SHT3X_TYPE_TEMPERATURE && type != SHT3X_TYPE_HUMIDITY) {
+    return INT_MIN;
+  }
+  
+  // read new values if no update value is buffered
+  if (!sht3x_values_updated[type]) {
+    if (sht3x_read_values(NULL, SHT3X_REPEATABILITY_LOW,
+                          &sht3x_raw_values[SHT3X_TYPE_TEMPERATURE],
+                          &sht3x_raw_values[SHT3X_TYPE_HUMIDITY])) {
+      // set updated flags on success
+      sht3x_values_updated[SHT3X_TYPE_TEMPERATURE] = true;
+      sht3x_values_updated[SHT3X_TYPE_HUMIDITY] = true;
+    }
+  }
 
-  sht3x_read_values(NULL, SHT3X_REPEATABILITY_LOW,
-                    &temperature_raw, &humidity_raw);
-
-  if (type == SHT3X_TYPE_TEMPERATURE) {
-    return sht3x_convert_temperature(temperature_raw);
+  // check if updated value available
+  if (type == SHT3X_TYPE_TEMPERATURE &&
+      sht3x_values_updated[SHT3X_TYPE_TEMPERATURE]) {
+    sht3x_values_updated[SHT3X_TYPE_TEMPERATURE] = false;
+    return sht3x_convert_temperature(sht3x_raw_values[SHT3X_TYPE_TEMPERATURE]);
+  } else if (type == SHT3X_TYPE_HUMIDITY && 
+             sht3x_values_updated[SHT3X_TYPE_HUMIDITY]) {
+    sht3x_values_updated[SHT3X_TYPE_HUMIDITY] = false;
+    return sht3x_convert_humidity(sht3x_raw_values[SHT3X_TYPE_HUMIDITY]);
   } else {
-    return sht3x_convert_humidity(humidity_raw);
+    // on error updating values, return most negative interger
+    return INT_MIN;
   }
 }
 /*---------------------------------------------------------------------------*/

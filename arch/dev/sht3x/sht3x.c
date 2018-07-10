@@ -83,27 +83,29 @@
 #define SHT3X_CODE_HEATER_ENABLE      0x306D
 #define SHT3X_CODE_HEATER_DISABLE     0x3066
 /*---------------------------------------------------------------------------*/
+#define SHT3X_READ_RETRY_ITERATIONS   50
+/*---------------------------------------------------------------------------*/
 int32_t
 sht3x_convert_temperature(uint16_t raw)
 {
 #if SHT3X_USE_FAHRENHEIT
-  return -4500 + (17500 * (int32_t)raw) / 65535;
-#else
   return -4900 + (31500 * (int32_t)raw) / 65535;
+#else
+  return -4500 + (17500 * (int32_t)raw) / 65535;
 #endif
 }
 /*---------------------------------------------------------------------------*/
 int32_t
 sht3x_convert_humidity(uint16_t raw)
 {
-  return (10000 * (int32_t)raw) / 65535; 
+  return (10000 * (int32_t)raw) / 65535;
 }
 /*---------------------------------------------------------------------------*/
 static void
 select_on_bus(void *conf)
 {
   // select sensor slave
-  LOG_DBG("I2C select");
+  LOG_DBG("I2C select (0x%02x)\n", SHT3X_I2C_ADDRESS);
   board_i2c_select(SHT3X_I2C_ADDRESS);
 }
 /*---------------------------------------------------------------------------*/
@@ -113,10 +115,10 @@ sht3x_read(void *conf, uint8_t *rbuf, uint8_t length)
   bool ret;
 
   // read the actual data
-  LOG_DBG("I2C read");
+  LOG_DBG("I2C read\n");
   ret = board_i2c_read(rbuf, length);
   if (!ret) {
-    LOG_DBG("I2C read FAILED");
+    LOG_DBG("I2C read FAILED\n");
     return ret;
   }
 
@@ -132,10 +134,10 @@ sht3x_write(void *conf, uint16_t command)
   wbuffer[1] = (uint8_t)(command & 0xff);
 
   // read the actual data
-  LOG_DBG("I2C write");
+  LOG_DBG("I2C write\n");
   ret = board_i2c_write(wbuffer, sizeof(wbuffer));
   if (!ret) {
-    LOG_DBG("I2C read FAILED");
+    LOG_DBG("I2C write FAILED\n");
     return ret;
   }
 
@@ -145,8 +147,14 @@ sht3x_write(void *conf, uint16_t command)
 bool
 sht3x_init(void *conf)
 {
-  // nothing needed to initialize, test communication by issuing soft reset
-  return sht3x_soft_reset(conf);
+  // nothing needed to initialize, but perform soft reset and clear status.
+  bool ret;
+  ret = sht3x_soft_reset(conf);
+  if (!ret) {
+    return false;
+  }
+
+  return sht3x_clear_status(conf);
 }
 /*---------------------------------------------------------------------------*/
 bool
@@ -180,8 +188,15 @@ sht3x_read_values(void *conf, sht3x_repeatability_t repeatability,
     return ret;
   }
 
-  // read register data
-  ret = sht3x_read(conf, rbuf, sizeof(rbuf));
+  // read data (retry until data ready, up to 15 ms for high repeatability)
+  uint8_t retry = SHT3X_READ_RETRY_ITERATIONS;
+  while (retry > 0) {
+    ret = sht3x_read(conf, rbuf, sizeof(rbuf));
+    if (ret == true) {
+      break;
+    }
+    retry = retry - 1;
+  }
   if (!ret) {
     return ret;
   }
