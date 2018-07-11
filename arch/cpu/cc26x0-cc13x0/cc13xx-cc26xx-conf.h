@@ -194,6 +194,17 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \name LED indicator configuration
+ *
+ * Enable/Disable the LEDs indicating boot progress and system state.
+ * @{
+ */
+#ifndef CC26XX_LED_CONF_ENABLE
+#define CC26XX_LED_CONF_ENABLE             1 /**< Enable/Disable LED output */
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name ROM Bootloader configuration
  *
  * Enable/Disable the ROM bootloader in your image, if the board supports it.

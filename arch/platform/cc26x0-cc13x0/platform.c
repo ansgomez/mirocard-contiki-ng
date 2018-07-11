@@ -90,6 +90,7 @@ void board_init(void);
 #define BOARD_HAS_SENSORS 1
 #endif
 /*---------------------------------------------------------------------------*/
+#if CC26XX_LED_CONF_ENABLE
 static void
 fade(leds_mask_t l)
 {
@@ -108,6 +109,7 @@ fade(leds_mask_t l)
     }
   }
 }
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 set_rf_params(void)
@@ -150,8 +152,9 @@ platform_init_stage_one()
   gpio_hal_init();
 
   leds_init();
+#if CC26XX_LED_CONF_ENABLE
   fade(LEDS_RED);
-
+#endif
   /*
    * Disable I/O pad sleep mode and open I/O latches in the AON IOC interface
    * This is only relevant when returning from shutdown (which is what froze
@@ -166,7 +169,9 @@ platform_init_stage_one()
   ti_lib_int_master_enable();
 
   soc_rtc_init();
+#if CC26XX_LED_CONF_ENABLE
   fade(LEDS_YELLOW);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -196,7 +201,9 @@ platform_init_stage_two()
 
   button_hal_init();
 
+#if CC26XX_LED_CONF_ENABLE
   fade(LEDS_GREEN);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -228,7 +235,9 @@ platform_init_stage_three()
   process_start(&sensors_process, NULL);
 #endif
 
+#if CC26XX_LED_CONF_ENABLE
   fade(LEDS_ORANGE);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
