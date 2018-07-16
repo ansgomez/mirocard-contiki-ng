@@ -41,6 +41,21 @@
 #define CC13XX_CC26XX_CONF_H_
 /*---------------------------------------------------------------------------*/
 /**
+ * \name System clock configuration
+ *
+ * Enable/Disable the use of the internal RCOSC as LF system clock source.
+ * @{
+ */
+#ifndef CC26XX_CLOCK_CONF_USE_LF_RCOSC
+#define CC26XX_CLOCK_CONF_USE_LF_RCOSC     1 /**< Enable/Disable use of LF RCOSC */
+#endif
+/* Set the CC26xxWARE LF clock configuration accordingly */
+#if CC26XX_CLOCK_CONF_USE_LF_RCOSC
+#define SET_CCFG_MODE_CONF_SCLK_LF_OPTION  0x3
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name Network Stack Configuration
  *
  * @{
