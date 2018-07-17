@@ -353,7 +353,9 @@ rf_ble_beacon_single(uint8_t channel, uint8_t *data, uint8_t len)
     PRINTF("rf_ble_beacon_single: abort primary mode\n");
     rf_core_primary_mode_abort();
   } else {
-    
+    PRINTF("rf_ble_beacon_single: power up RF core\n");
+
+    /* Request the HF XOSC to source the HF clock. */
     oscillators_request_hf_xosc();
 
     /* We were off: Boot the CPE */
@@ -363,50 +365,53 @@ rf_ble_beacon_single(uint8_t channel, uint8_t *data, uint8_t len)
       return;
     }
 
+    /* Trigger a switch to the XOSC, so that we can use the FS */
     oscillators_switch_to_hf_xosc();
+  }
+  
+  /* Enter BLE mode */
+  if(rf_radio_setup() != RF_CORE_CMD_OK) {
+    /* Continue so we can at least try to restore our previous state */
+    PRINTF("rf_ble_beacon_single: Error entering BLE mode\n");
+  } else {
 
-    /* Enter BLE mode */
-    if(rf_radio_setup() != RF_CORE_CMD_OK) {
-      /* Continue so we can at least try to restore our previous state */
-      PRINTF("rf_ble_beacon_single: Error entering BLE mode\n");
-    } else {
-
-      for(j = 0; j < 3; j++) {
-        channel_selected = (channel >> j) & 0x01;
-        if(channel_selected == 1) {
-          if(send_ble_adv_nc(37 + j, data, len) != RF_CORE_CMD_OK) {
-            /* Continue... */
-            PRINTF("rf_ble_beacon_single: Channel=%d, "
-                   "Error advertising\n", 37 + j);
-          }
+    for(j = 0; j < 3; j++) {
+      channel_selected = (channel >> j) & 0x01;
+      if(channel_selected == 1) {
+        if(send_ble_adv_nc(37 + j, data, len) != RF_CORE_CMD_OK) {
+          /* Continue... */
+          PRINTF("rf_ble_beacon_single: Channel=%d, "
+                  "Error advertising\n", 37 + j);
         }
       }
     }
+  }
 
-    /* Send a CMD_STOP command to RF Core */
-    if(rf_core_send_cmd(CMDR_DIR_CMD(CMD_STOP), &cmd_status) != RF_CORE_CMD_OK) {
-      /* Continue... */
-      PRINTF("rf_ble_beacon_single: status=0x%08lx\n", cmd_status);
-    }
+  /* Send a CMD_STOP command to RF Core */
+  if(rf_core_send_cmd(CMDR_DIR_CMD(CMD_STOP), &cmd_status) != RF_CORE_CMD_OK) {
+    /* Continue... */
+    PRINTF("rf_ble_beacon_single: status=0x%08lx\n", cmd_status);
+  }
 
-    if(was_on) {
-      /* We were on, go back to previous primary mode */
-      rf_core_primary_mode_restore();
-    } else {
-      /* We were off. Shut back off */
-      rf_core_power_down();
+  if(was_on) {
+    /* We were on, go back to previous primary mode */
+    rf_core_primary_mode_restore();
+    PRINTF("rf_ble_beacon_single: restored primary mode\n");
+  } else {
+    /* We were off. Shut back off */
+    rf_core_power_down();
 
-      /* Switch HF clock source to the RCOSC to preserve power */
-      oscillators_switch_to_hf_rc();
-    }
+    /* Switch HF clock source to the RCOSC to preserve power */
+    oscillators_switch_to_hf_rc();
+    PRINTF("rf_ble_beacon_single: powered down RF core\n");
+  }
 
-    interrupts_disabled = ti_lib_int_master_disable();
+  interrupts_disabled = ti_lib_int_master_disable();
 
-    ble_mode_on = RF_BLE_IDLE;
+  ble_mode_on = RF_BLE_IDLE;
 
-    if(!interrupts_disabled) {
-      ti_lib_int_master_enable();
-    }
+  if(!interrupts_disabled) {
+    ti_lib_int_master_enable();
   }
 }
 /*---------------------------------------------------------------------------*/
