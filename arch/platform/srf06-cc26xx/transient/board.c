@@ -48,6 +48,65 @@
 #include <stdbool.h>
 /*---------------------------------------------------------------------------*/
 static void
+board_gpio_shutdown(void)
+{
+  /* configure communication interface pin states for shutdown */
+  // I2C bus pin configuration for shutdown
+  gpio_hal_arch_pin_set_input(BOARD_IOID_I2C_SCL);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_I2C_SCL, GPIO_HAL_PIN_CFG_PULL_UP);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_I2C_SDA);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_I2C_SDA, GPIO_HAL_PIN_CFG_PULL_UP);
+
+  // UART pin configuration for shutdown
+  gpio_hal_arch_pin_set_input(BOARD_IOID_UART_RX);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_UART_RX, GPIO_HAL_PIN_CFG_PULL_DOWN);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_UART_TX);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_UART_TX, GPIO_HAL_PIN_CFG_PULL_DOWN);
+
+  // FRAM SPI pin configuration for shutdown
+  gpio_hal_arch_pin_set_input(BOARD_IOID_FRAM_SCK);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_FRAM_SCK, GPIO_HAL_PIN_CFG_PULL_DOWN);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_FRAM_MOSI);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_FRAM_MOSI, GPIO_HAL_PIN_CFG_PULL_DOWN);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_FRAM_MISO);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_FRAM_MISO, GPIO_HAL_PIN_CFG_PULL_DOWN);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_FRAM_CS);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_FRAM_CS, GPIO_HAL_PIN_CFG_PULL_UP);
+
+  // RTC SPI pin configuration for shutdown
+  gpio_hal_arch_pin_set_input(BOARD_IOID_AM0815_SCK);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_AM0815_SCK, GPIO_HAL_PIN_CFG_PULL_UP);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_AM0815_MOSI);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_AM0815_MOSI, GPIO_HAL_PIN_CFG_PULL_DOWN);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_AM0815_MISO);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_AM0815_MISO, GPIO_HAL_PIN_CFG_PULL_DOWN);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_AM0815_CS);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_AM0815_CS, GPIO_HAL_PIN_CFG_PULL_UP);
+
+  // SHT3x GPIOs
+  gpio_hal_arch_pin_set_input(BOARD_IOID_SHT_RESET);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_SHT_RESET, GPIO_HAL_PIN_CFG_PULL_UP);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_SHT_ALERT);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_SHT_ALERT, GPIO_HAL_PIN_CFG_PULL_NONE);
+
+  // RTC GPIOs
+  gpio_hal_arch_pin_set_input(BOARD_IOID_AM0815_CHARGE);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_AM0815_CHARGE, GPIO_HAL_PIN_CFG_PULL_DOWN);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_AM0815_IRQ);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_AM0815_IRQ, GPIO_HAL_PIN_CFG_PULL_NONE);
+
+  // General Purpose I/O
+  gpio_hal_arch_pin_set_input(BOARD_IOID_GPIO_1);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_GPIO_1, GPIO_HAL_PIN_CFG_PULL_DOWN);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_GPIO_2);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_GPIO_2, GPIO_HAL_PIN_CFG_PULL_DOWN);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_GPIO_3);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_GPIO_3, GPIO_HAL_PIN_CFG_PULL_DOWN);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_GPIO_4);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_GPIO_4, GPIO_HAL_PIN_CFG_PULL_DOWN);
+}
+/*---------------------------------------------------------------------------*/
+static void
 wakeup_handler(void)
 {
   /* Turn on the PERIPH PD */
@@ -64,6 +123,9 @@ shutdown_handler(uint8_t mode)
 {
   // shutdown I2C controller
   board_i2c_shutdown();
+
+  // shutdown GPIOs
+  board_gpio_shutdown();
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -103,26 +165,22 @@ board_init()
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
 
+  /* Set GPIOs to default state */
+  board_gpio_shutdown();
+
   /* initialize external FRAM memory */
   // ext_fram_open(NULL); /* init without sending to sleep */
   // ext_fram_init(NULL); /* init and send to sleep */
 
-  /* initialize AM0815 RTC and related GPIOs */
-  // am0815_init(NULL);
+  /* initialize AM0815 RTC */
+  //am0815_init(NULL);
 
+  // configure active GPIO states different from shutdown (i.e. outputs) */
+  // RTC backup buffer charge switch
   gpio_hal_arch_pin_set_output(BOARD_IOID_AM0815_CHARGE);
   gpio_hal_arch_clear_pin(BOARD_IOID_AM0815_CHARGE);
-  gpio_hal_arch_pin_set_input(BOARD_IOID_AM0815_IRQ);
-  gpio_hal_arch_pin_cfg_set(BOARD_IOID_AM0815_IRQ, GPIO_HAL_PIN_CFG_PULL_NONE);
 
-  /* initialize SHT3x sensor related GPIOs */
-  // TODO: to be dropped in v2 platform
-  gpio_hal_arch_pin_set_input(BOARD_IOID_SHT_RESET);
-  gpio_hal_arch_pin_cfg_set(BOARD_IOID_SHT_RESET, GPIO_HAL_PIN_CFG_PULL_UP);
-  gpio_hal_arch_pin_set_input(BOARD_IOID_SHT_ALERT);
-  gpio_hal_arch_pin_cfg_set(BOARD_IOID_SHT_ALERT, GPIO_HAL_PIN_CFG_PULL_NONE);
-
-  /* initialize general purpose GPIO_x */
+  // general purpose GPIO_x
   gpio_hal_arch_pin_set_output(BOARD_IOID_GPIO_1);
   gpio_hal_arch_clear_pin(BOARD_IOID_GPIO_1);
   gpio_hal_arch_pin_set_output(BOARD_IOID_GPIO_2);
