@@ -71,7 +71,7 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define BOARD_IOID_LED_1          IOID_6
+#define BOARD_IOID_LED_1          IOID_23
 #define BOARD_LED_ALL             BOARD_IOID_LED_1
 /** @} */
 /*---------------------------------------------------------------------------*/
@@ -93,6 +93,8 @@
  */
 #define BOARD_IOID_GPIO_1         IOID_12
 #define BOARD_IOID_GPIO_2         IOID_13
+#define BOARD_IOID_GPIO_3         IOID_0
+#define BOARD_IOID_GPIO_4         IOID_1
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -117,19 +119,19 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define BOARD_IOID_EMU_VSEL_1     IOID_UNUSED
-#define BOARD_IOID_EMU_VSEL_2     IOID_UNUSED
-#define BOARD_IOID_EMU_VSEL_3     IOID_UNUSED
-#define BOARD_IOID_EMU_VSEL_4     IOID_UNUSED
-#define BOARD_IOID_EMU_ESEL_1     IOID_UNUSED
-#define BOARD_IOID_EMU_ESEL_2     IOID_UNUSED
+#define BOARD_IOID_EMU_VOUT_SEL_1 IOID_UNUSED
+#define BOARD_IOID_EMU_VOUT_SEL_2 IOID_UNUSED
+#define BOARD_IOID_EMU_VOUT_SEL_3 IOID_UNUSED
+#define BOARD_IOID_EMU_VOUT_SEL_4 IOID_UNUSED
+#define BOARD_IOID_EMU_OV_SEL_1   IOID_UNUSED
+#define BOARD_IOID_EMU_OV_SEL_2   IOID_UNUSED
 #define BOARD_IOID_EMU_TRIG       IOID_UNUSED
 #define BOARD_IOID_EMU_COMP       IOID_UNUSED
 #define BOARD_IOID_EMU_VBUF       IOID_UNUSED
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
- * \name AM0815 RTC SPI IOID mapping
+ * \name AM0815 RTC SPI IOID mapping and parameter
  *
  * @{
  */
@@ -160,7 +162,7 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
- * \name External FRAM IOID mapping (SPI)
+ * \name External FRAM IOID mapping (SPI) and parameter
  *
  * Those values are not meant to be modified by the user
  * @{
@@ -177,8 +179,9 @@
 #define EXT_FRAM_SPI_PIN_MISO     11
 #define EXT_FRAM_SPI_PIN_CS       10
 
-#define EXT_FRAM_PRODUCT_ID_LOW   0x00
-#define EXT_FRAM_PRODUCT_ID_HIGH  0x24
+#define EXT_FRAM_MEMORY_SIZE      (1 << 17)
+
+#define EXT_FRAM_DEVICE_ID        {0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0xC2, 0x24, 0x00}
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -195,6 +198,8 @@
  * \name SHT31 sensor IOID mappings
  *
  * PIN configuration for the use of external pins, to be used with the RocketLogger
+ *
+ * Those values are not meant to be modified by the user
  * @{
  */
 #define BOARD_IOID_SHT_RESET      IOID_6
@@ -229,20 +234,20 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define BOARD_IOID_DIO0           IOID_0
-#define BOARD_IOID_DIO1           IOID_1
-//#define BOARD_IOID_DIO2           IOID_2  // UART
-//#define BOARD_IOID_DIO3           IOID_3  // UART
-//#define BOARD_IOID_DIO4           IOID_4  // I2C
-//#define BOARD_IOID_DIO5           IOID_5  // I2C
+//#define BOARD_IOID_DIO0           IOID_0  //GPIO_3
+//#define BOARD_IOID_DIO1           IOID_1  //GPIO_4
+//#define BOARD_IOID_DIO2           IOID_2  //UART
+//#define BOARD_IOID_DIO3           IOID_3  //UART
+//#define BOARD_IOID_DIO4           IOID_4  //I2C
+//#define BOARD_IOID_DIO5           IOID_5  //I2C
 //#define BOARD_IOID_DIO6           IOID_6  //SHT_RESET
 //#define BOARD_IOID_DIO7           IOID_7  //SHT_ALERT
-//#define BOARD_IOID_FRAM_MISO      IOID_8  //FRAM
-//#define BOARD_IOID_FRAM_MOSI      IOID_9  //FRAM
-//#define BOARD_IOID_FRAM_SCK       IOID_10 //FRAM
-//#define BOARD_IOID_FRAM_CS        IOID_11 //FRAM
-//#define BOARD_IOID_DIO12          IOID_12 //GPIO12
-//#define BOARD_IOID_DIO13          IOID_13 //GPIO13
+//#define BOARD_IOID_DIO8           IOID_8  //FRAM
+//#define BOARD_IOID_DIO9           IOID_9  //FRAM
+//#define BOARD_IOID_DIO10          IOID_10 //FRAM
+//#define BOARD_IOID_DIO11          IOID_11 //FRAM
+//#define BOARD_IOID_DIO12          IOID_12 //GPIO_1
+//#define BOARD_IOID_DIO13          IOID_13 //GPIO_2
 //#define BOARD_IOID_DIO14          IOID_14 //RTC Charging
 #define BOARD_IOID_DIO15          IOID_15
 #define BOARD_IOID_TDO            IOID_16
@@ -252,8 +257,8 @@
 //#define BOARD_IOID_DIO20          IOID_20 //RTC_SCK
 //#define BOARD_IOID_DIO21          IOID_21 //RTC_MISO
 //#define BOARD_IOID_DIO22          IOID_22 //RTC_MOSI
-//#define BOARD_IOID_DIO23          IOID_23
-//#define BOARD_IOID_DIO24          IOID_24
+//#define BOARD_IOID_DIO23          IOID_23 //LED_1
+//#define BOARD_IOID_DIO24          IOID_24 //BUTTON
 #define BOARD_IOID_DIO25          IOID_25
 #define BOARD_IOID_DIO26          IOID_26
 #define BOARD_IOID_DIO27          IOID_27
@@ -262,7 +267,6 @@
 #define BOARD_IOID_DIO30          IOID_30
 
 #define BOARD_UNUSED_PINS { \
-    BOARD_IOID_DIO0, BOARD_IOID_DIO1, \
     BOARD_IOID_DIO15, \
     BOARD_IOID_TDO, BOARD_IOID_TDI, \
     BOARD_IOID_DIO25, BOARD_IOID_DIO26, BOARD_IOID_DIO27, \

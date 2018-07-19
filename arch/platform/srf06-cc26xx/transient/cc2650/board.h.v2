@@ -119,12 +119,12 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define BOARD_IOID_EMU_VSEL_1     IOID_18
-#define BOARD_IOID_EMU_VSEL_2     IOID_19
-#define BOARD_IOID_EMU_VSEL_3     IOID_20
-#define BOARD_IOID_EMU_VSEL_4     IOID_21
-#define BOARD_IOID_EMU_ESEL_1     IOID_22
-#define BOARD_IOID_EMU_ESEL_2     IOID_23
+#define BOARD_IOID_EMU_VOUT_SEL_1 IOID_18
+#define BOARD_IOID_EMU_VOUT_SEL_2 IOID_19
+#define BOARD_IOID_EMU_VOUT_SEL_3 IOID_20
+#define BOARD_IOID_EMU_VOUT_SEL_4 IOID_21
+#define BOARD_IOID_EMU_OV_SEL_1   IOID_22
+#define BOARD_IOID_EMU_OV_SEL_2   IOID_23
 #define BOARD_IOID_EMU_TRIG       IOID_24
 #define BOARD_IOID_EMU_COMP       IOID_25
 #define BOARD_IOID_EMU_VBUF       IOID_26

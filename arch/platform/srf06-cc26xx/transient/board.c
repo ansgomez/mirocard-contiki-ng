@@ -41,7 +41,7 @@
 #include "lpm.h"
 #include "ti-lib.h"
 #include "board-peripherals.h"
-#include "rf-core/rf-switch.h"
+#include "board-i2c.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -54,6 +54,16 @@ wakeup_handler(void)
   ti_lib_prcm_power_domain_on(PRCM_DOMAIN_PERIPH);
   while(ti_lib_prcm_power_domain_status(PRCM_DOMAIN_PERIPH)
         != PRCM_DOMAIN_POWER_ON);
+
+  /* init I2C controller */
+  board_i2c_wakeup();
+}
+/*---------------------------------------------------------------------------*/
+static void
+shutdown_handler(uint8_t mode)
+{
+  // shutdown I2C controller
+  board_i2c_shutdown();
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -62,7 +72,7 @@ wakeup_handler(void)
  * getting notified before deep sleep. All we need is to be notified when we
  * wake up so we can turn power domains back on
  */
-LPM_MODULE(launchpad_module, NULL, NULL, wakeup_handler, LPM_DOMAIN_NONE);
+LPM_MODULE(transient_module, NULL, shutdown_handler, wakeup_handler, LPM_DOMAIN_NONE);
 /*---------------------------------------------------------------------------*/
 static void
 configure_unused_pins(void)
@@ -93,41 +103,40 @@ board_init()
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
 
-  /* initialize external FRAM memory in sleep mode */
-  // ext_fram_init(NULL);
-
-  /* initialize external FRAM memory without sending to sleep */
-  ext_fram_open(NULL);
+  /* initialize external FRAM memory */
+  // ext_fram_open(NULL); /* init without sending to sleep */
+  // ext_fram_init(NULL); /* init and send to sleep */
 
   /* initialize AM0815 RTC and related GPIOs */
-  am0815_init(NULL);
+  // am0815_init(NULL);
 
   gpio_hal_arch_pin_set_output(BOARD_IOID_AM0815_CHARGE);
   gpio_hal_arch_clear_pin(BOARD_IOID_AM0815_CHARGE);
   gpio_hal_arch_pin_set_input(BOARD_IOID_AM0815_IRQ);
-  gpio_hal_arch_pin_cfg_set(BOARD_IOID_AM0815_IRQ, GPIO_HAL_PIN_CFG_PULL_DOWN);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_AM0815_IRQ, GPIO_HAL_PIN_CFG_PULL_NONE);
 
   /* initialize SHT3x sensor related GPIOs */
   // TODO: to be dropped in v2 platform
-  gpio_hal_arch_pin_set_output(BOARD_IOID_SHT_RESET);
-  gpio_hal_arch_set_pin(BOARD_IOID_SHT_RESET);
+  gpio_hal_arch_pin_set_input(BOARD_IOID_SHT_RESET);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_SHT_RESET, GPIO_HAL_PIN_CFG_PULL_UP);
   gpio_hal_arch_pin_set_input(BOARD_IOID_SHT_ALERT);
-  gpio_hal_arch_pin_cfg_set(BOARD_IOID_SHT_ALERT, GPIO_HAL_PIN_CFG_PULL_DOWN);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_SHT_ALERT, GPIO_HAL_PIN_CFG_PULL_NONE);
 
   /* initialize general purpose GPIO_x */
   gpio_hal_arch_pin_set_output(BOARD_IOID_GPIO_1);
   gpio_hal_arch_clear_pin(BOARD_IOID_GPIO_1);
   gpio_hal_arch_pin_set_output(BOARD_IOID_GPIO_2);
   gpio_hal_arch_clear_pin(BOARD_IOID_GPIO_2);
+  gpio_hal_arch_pin_set_output(BOARD_IOID_GPIO_3);
+  gpio_hal_arch_clear_pin(BOARD_IOID_GPIO_3);
+  gpio_hal_arch_pin_set_output(BOARD_IOID_GPIO_4);
+  gpio_hal_arch_clear_pin(BOARD_IOID_GPIO_4);
 
   /* register LPM module to restore peripheral power on wakeup */
-  lpm_register_module(&launchpad_module);
+  lpm_register_module(&transient_module);
 
   /* For unsupported peripherals, select a default pin configuration */
   configure_unused_pins();
-
-  /* Initialise the RF switch if present */
-  rf_switch_init();
 
   /* Re-enable interrupt if initially enabled. */
   if(!int_disabled) {
