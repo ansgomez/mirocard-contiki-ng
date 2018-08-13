@@ -47,8 +47,9 @@
 #ifndef BOARD_PERIPHERALS_H_
 #define BOARD_PERIPHERALS_H_
 /*---------------------------------------------------------------------------*/
-#include "ext-fram.h"
 #include "am0815.h"
+#include "emu.h"
+#include "ext-fram.h"
 #include "sht3x-sensor.h"
 /*---------------------------------------------------------------------------*/
 #define BOARD_CONF_HAS_SENSORS  1

@@ -83,12 +83,6 @@ board_gpio_shutdown(void)
   gpio_hal_arch_pin_set_input(BOARD_IOID_AM0815_CS);
   gpio_hal_arch_pin_cfg_set(BOARD_IOID_AM0815_CS, GPIO_HAL_PIN_CFG_PULL_UP);
 
-  // SHT3x GPIOs
-  gpio_hal_arch_pin_set_input(BOARD_IOID_SHT_RESET);
-  gpio_hal_arch_pin_cfg_set(BOARD_IOID_SHT_RESET, GPIO_HAL_PIN_CFG_PULL_UP);
-  gpio_hal_arch_pin_set_input(BOARD_IOID_SHT_ALERT);
-  gpio_hal_arch_pin_cfg_set(BOARD_IOID_SHT_ALERT, GPIO_HAL_PIN_CFG_PULL_NONE);
-
   // RTC GPIOs
   gpio_hal_arch_pin_set_input(BOARD_IOID_AM0815_CHARGE);
   gpio_hal_arch_pin_cfg_set(BOARD_IOID_AM0815_CHARGE, GPIO_HAL_PIN_CFG_PULL_DOWN);
@@ -167,6 +161,9 @@ board_init()
 
   /* Set GPIOs to default state */
   board_gpio_shutdown();
+
+  /* initialize EMU to default state */
+  emu_init();
 
   /* initialize external FRAM memory */
   // ext_fram_open(NULL); /* init without sending to sleep */
