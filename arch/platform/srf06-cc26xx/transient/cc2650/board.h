@@ -82,7 +82,6 @@
  * @{
  */
 #define BOARD_IOID_KEY_USER       IOID_10
-#define BOARD_KEY_USER            (1 << BOARD_IOID_KEY_USER)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -93,8 +92,8 @@
  */
 #define BOARD_IOID_GPIO_1         IOID_12
 #define BOARD_IOID_GPIO_2         IOID_13
-#define BOARD_IOID_GPIO_3         IOID_2
-#define BOARD_IOID_GPIO_4         IOID_3
+#define BOARD_IOID_GPIO_3         IOID_14
+#define BOARD_IOID_GPIO_4         IOID_15
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -103,14 +102,10 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define BOARD_IOID_UART_RX        IOID_14
-#define BOARD_IOID_UART_TX        IOID_15
+#define BOARD_IOID_UART_RX        IOID_2
+#define BOARD_IOID_UART_TX        IOID_3
 #define BOARD_IOID_UART_RTS       IOID_UNUSED
 #define BOARD_IOID_UART_CTS       IOID_UNUSED
-#define BOARD_UART_RX             (1 << BOARD_IOID_UART_RX)
-#define BOARD_UART_TX             (1 << BOARD_IOID_UART_TX)
-#define BOARD_UART_RTS            (1 << BOARD_IOID_UART_RTS)
-#define BOARD_UART_CTS            (1 << BOARD_IOID_UART_CTS)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
