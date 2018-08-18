@@ -39,7 +39,7 @@
 /* Log configuration */
 #include "sys/log.h"
 #define LOG_MODULE                      "emu"
-#define LOG_LEVEL                       LOG_LEVEL_DBG
+#define LOG_LEVEL                       LOG_LEVEL_NONE
 /*---------------------------------------------------------------------------*/
 #ifndef EMU_DEFAULT_BURST
 #define EMU_DEFAULT_BURST               EMU_BURST_SMALL
@@ -89,8 +89,9 @@ emu_init(void)
   gpio_hal_arch_pin_cfg_set(BOARD_IOID_EMU_COMP, GPIO_HAL_PIN_CFG_PULL_DOWN);
 
   // boffer voltage analog in
+  // TODO: currently deactivated
   gpio_hal_arch_pin_set_input(BOARD_IOID_EMU_VBUF);
-  gpio_hal_arch_pin_cfg_set(BOARD_IOID_EMU_VBUF, GPIO_HAL_PIN_CFG_PULL_NONE);
+  gpio_hal_arch_pin_cfg_set(BOARD_IOID_EMU_VBUF, GPIO_HAL_PIN_CFG_PULL_DOWN);
 
   // configure wakeup interrupt
   // TODO 
