@@ -166,13 +166,13 @@ board_init()
   emu_init();
 
   /* initialize external FRAM memory */
-  // ext_fram_open(NULL); /* init without sending to sleep */
-  // ext_fram_init(NULL); /* init and send to sleep */
+  ext_fram_open(NULL); /* init without sending to sleep */
+  gpio_hal_arch_clear_pin(BOARD_IOID_FRAM_CS); /* keep CS low to wakeup */
 
   /* initialize AM0815 RTC */
   //am0815_init(NULL);
 
-  // configure active GPIO states different from shutdown (i.e. outputs) */
+  /* configure active GPIO states different from shutdown (i.e. outputs) */
   // RTC backup buffer charge switch
   gpio_hal_arch_pin_set_output(BOARD_IOID_AM0815_CHARGE);
   gpio_hal_arch_clear_pin(BOARD_IOID_AM0815_CHARGE);
