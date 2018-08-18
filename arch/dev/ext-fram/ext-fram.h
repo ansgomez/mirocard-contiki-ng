@@ -43,7 +43,8 @@
  * \return True when successful.
  * 
  * \note A delay of 400us needs to be waited before reading/writing when the
- * device was in sleep mode (default after init)
+ * device was in sleep mode (default after init). Manually pulling the CS line
+ * low after this function call enables faster wakeup without a dummy read.
  */
 bool ext_fram_open(spi_device_t *conf);
 
@@ -98,8 +99,8 @@ bool ext_fram_write(spi_device_t *conf, uint32_t offset, uint32_t length, const 
  * This function will explicitly put the part in its lowest power mode
  * (power-down).
  *
- * In order to perform any operation, the caller must first wake the device
- * up by calling ext_fram_open()
+ * In order to perform any operation after this routine, the caller has to wake
+ * up the device calling ext_fram_open() first.
  */
 bool ext_fram_init(spi_device_t *conf);
 /*---------------------------------------------------------------------------*/
