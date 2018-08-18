@@ -52,8 +52,7 @@ typedef enum {
 /**
  * Date time structure to work with the RTC
  */
-typedef struct am0815_tm
-{
+typedef struct am0815_tm {
   uint8_t split;   /**< hunderedths split seconds after seconds (0-99) */
   uint8_t sec;     /**< seconds after minutes (0-59)*/
   uint8_t min;     /**< minutes after hours (0-59) */
@@ -63,7 +62,23 @@ typedef struct am0815_tm
   uint8_t year;    /**< year after 2000 (0-99) */
 } am0815_tm_t;
 /*---------------------------------------------------------------------------*/
-
+/**
+ * Invalid timestamp definition
+ */
+#define AM0815_TIMESTAMP_INVALID                                              \
+  ((am0815_tm_t) { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF })
+/**
+ * Test wether year is a leap year
+ */
+#define IS_LEAP_YEAR(y)                                                       \
+  ( (((y) % 4 == 0) && ((y) % 100 != 0)) || ((y) % 400 == 0) )
+/*---------------------------------------------------------------------------*/
+/**
+ * Day offsets for months of the year (for no-leap years)
+ */
+static const uint16_t month_days_offset[] =
+  {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
+/*---------------------------------------------------------------------------*/
 /**
  * \brief Initialize AM0815 RTC driver.
  * \param conf SPI bus configuration struct. NULL for default.
@@ -101,7 +116,8 @@ bool am0815_get_time(spi_device_t *conf, am0815_tm_t *timeptr);
 /**
  * \brief Set the time of AM0815 RTC
  * \param conf SPI bus configuration struct. NULL for default.
- * \param timeptr Pointer to date/time to set the RTC value to.
+ * \param timeptr Pointer to date/time to set the RTC value to. In case of an
+ *                error it is set to `AM0815_TIMESTAMP_INVALID`.
  * \return True when successful.
  */
 bool am0815_set_time(spi_device_t *conf, const am0815_tm_t *timeptr);
@@ -135,6 +151,13 @@ bool am0815_write_sram(spi_device_t *conf, uint8_t offset, uint8_t length, const
  *
  */
 bool am0815_init(spi_device_t *conf);
+
+/**
+ * \brief Convert the AM0815 date time structure to seconds.
+ * \param timestamp AM0815 date time structure to convert.
+ * \return Seconds since Jan 1st, 2000.
+ */
+uint32_t am0815_timestamp_to_seconds(const am0815_tm_t* timestamp);
 
 /*---------------------------------------------------------------------------*/
 #endif /* AM0815_H_ */

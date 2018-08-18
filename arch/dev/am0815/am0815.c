@@ -358,6 +358,7 @@ am0815_get_time(spi_device_t *conf, am0815_tm_t *timeptr)
   // read data
   ret = am0815_read_reg(conf, AM0815_HUNDREDTHS_ADDR, AM0815_TIME_SIZE, rbuf);
   if (ret == false) {
+    *timeptr = AM0815_TIMESTAMP_INVALID;
     return false;
   }
 
@@ -419,5 +420,30 @@ am0815_init(spi_device_t *conf)
   LOG_INFO("AM0815 init successful\n");
 
   return true;
+}
+/*---------------------------------------------------------------------------*/
+uint32_t
+am0815_timestamp_to_seconds(const am0815_tm_t* timestamp)
+{
+  // return max value on invalid timestamp
+  if (timestamp->sec == 0xFF) {
+    return 0xFFFFFFFF;
+  }
+
+  // calculate days for month and years (incl. leap years and leap in 2000)
+  uint32_t year_month_in_days = month_days_offset[timestamp->month] +
+    365 * (uint32_t)timestamp->year + (uint32_t)(timestamp->year / 4) + 1;
+  
+  // ignore additional day for Jan/Feb dates in leap years
+  if (IS_LEAP_YEAR(timestamp->year) && timestamp->month <= 2) {
+    year_month_in_days = year_month_in_days - 1;
+  }
+
+  // calculate seconds
+  uint32_t seconds = (uint32_t)timestamp->sec + 60 * ((uint32_t)timestamp->min +
+    60 * ((uint32_t)timestamp->hour + 
+    24 * ((uint32_t)timestamp->day + year_month_in_days)));
+
+  return seconds;
 }
 /*---------------------------------------------------------------------------*/
