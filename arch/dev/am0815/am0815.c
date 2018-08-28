@@ -431,7 +431,7 @@ am0815_timestamp_to_seconds(const am0815_tm_t* timestamp)
   }
 
   // calculate days for month and years (incl. leap years and leap in 2000)
-  uint32_t year_month_in_days = month_days_offset[timestamp->month] +
+  uint32_t year_month_in_days = month_days_offset[timestamp->month - 1] +
     365 * (uint32_t)timestamp->year + (uint32_t)(timestamp->year / 4) + 1;
   
   // ignore additional day for Jan/Feb dates in leap years
@@ -442,7 +442,7 @@ am0815_timestamp_to_seconds(const am0815_tm_t* timestamp)
   // calculate seconds
   uint32_t seconds = (uint32_t)timestamp->sec + 60 * ((uint32_t)timestamp->min +
     60 * ((uint32_t)timestamp->hour + 
-    24 * ((uint32_t)timestamp->day + year_month_in_days)));
+    24 * ((uint32_t)timestamp->day - 1 + year_month_in_days)));
 
   return seconds;
 }
