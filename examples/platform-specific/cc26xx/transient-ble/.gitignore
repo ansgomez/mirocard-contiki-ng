@@ -1,4 +1,5 @@
 policy-pool.h
+haar_standalone_test
 
 # contiki ignores
 *.a
@@ -13,6 +14,7 @@ policy-pool.h
 *.o
 *.e
 *.ihex
+*.i16hex
 *.pyc
 *~
 obj_*

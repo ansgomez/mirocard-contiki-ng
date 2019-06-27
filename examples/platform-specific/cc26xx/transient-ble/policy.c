@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Swiss Federal Institute of Technology (ETH Zurich)
+ * Copyright (c) 2019, Swiss Federal Institute of Technology (ETH Zurich)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -139,49 +139,5 @@ const uint16_t* const policy_generate_selection(uint8_t power_level) {
 /*---------------------------------------------------------------------------*/
 uint16_t policy_get_delta_factor(uint8_t power_level) {
   return policy_pool_delta[power_level];
-}
-/*---------------------------------------------------------------------------*/
-void policy_update_aggregates(transient_data_unit_t* const buffer,
-                              const transient_data_unit_t* const value){
-  uint16_t value_temperature, value_humidity;
-  uint16_t buffer_temperature, buffer_humidity;
-  uint32_t value_timestamp, buffer_timestamp;
-
-  // split new data unit for comparison/calculations
-  transient_data_unit_split(value, &value_timestamp, &value_temperature, &value_humidity);
-
-  for (uint16_t i = 0; i < POLICY_BUFFER_AGGREGATES; i++) {
-    // split buffer data unit for comparison/calculations
-    transient_data_unit_split(&buffer[i], &buffer_timestamp, &buffer_temperature, &buffer_humidity);
-
-    if (i == 0) {
-      // min value
-      if (value_temperature < buffer_temperature) {
-        buffer_temperature = value_temperature;
-      }
-      if (value_humidity < buffer_humidity) {
-        buffer_humidity = value_humidity;
-      }
-    } else if (i == 1) {
-      // max value
-      if (value_temperature > buffer_temperature) {
-        buffer_temperature = value_temperature;
-      }
-      if (value_humidity > buffer_humidity) {
-        buffer_humidity = value_humidity;
-      }
-    } else {
-      // EWMA for different alphas
-      buffer_temperature = (uint16_t)
-        ((uint32_t)buffer_temperature * (EWMA_BASE_ALPHA * (i-1) - 1) / (EWMA_BASE_ALPHA * (i-1)) +
-         value_temperature / (EWMA_BASE_ALPHA * (i-1)));
-      buffer_humidity = (uint16_t)
-        ((uint32_t)buffer_humidity * (EWMA_BASE_ALPHA * (i-1) - 1) / (EWMA_BASE_ALPHA * (i-1)) + 
-         value_humidity / (EWMA_BASE_ALPHA * (i-1)));
-    }
-
-    // join and store updated buffer data unit
-    transient_data_unit_join(&buffer[i], buffer_timestamp, buffer_temperature, buffer_humidity);
-  }
 }
 /*---------------------------------------------------------------------------*/

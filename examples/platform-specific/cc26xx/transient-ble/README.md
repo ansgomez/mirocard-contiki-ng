@@ -137,7 +137,7 @@ All numbers are the typical values at room temperature taken from the respective
 
 ### Data storage in FRAM memory
 
-The last system state is storead at address `0x00` in the FRAM (last sucessfully
+The last system state is storead at address `0x00` in the FRAM (last successfully
 saved system state after completing an full activation).
 
 The sensor data history is stored in a ring buffer in the remaining FRAM memory,
@@ -146,8 +146,10 @@ First, the fixed number of `N` aggregate values are stored.
 In the remaining FRAM memory a wrapping around ring buffer structure is used for
 continuous accumulation of new sensor data.
 
+**TODO: FRAM data section layout needs update for aggregate buffers.**
+
 A data unit consists 7 bytes (=54 bits) of data, organized as follows:
-- 32 bit of timestamp in seconds since the last system cold start.
+- 32 bit of timestamp in seconds since the last system cold start (little endian).
   This allows covering a continuous sensing interval of more than 68 years after
   a cold start of the system.
   The highest 32 bit value (i.e. `0xFFFF FFFF`) refers to an invalid timestamp.
@@ -159,6 +161,24 @@ A data unit consists 7 bytes (=54 bits) of data, organized as follows:
 - 14 bit of temperature value in 100ths of centigrades, offset at -40.0 and
   ranging up to +120.0 centigrades.
 
+This results in the following *sensor value* data format (see [data.h:data_encode_value()](data.h))
+- Byte `0-3`: The unix timestamp of the time the value was sensed
+- Byte `4`: Lower 8 Bits of humidity data
+- Byte `5`: Higher 2 Bits of humidity data (LSB) and lower 6 Bits of temperature data (MSB)
+- Byte `6`: Higher 8 Bits of temperature data
+
+
+### Aggregate data unit format
+
+A second data type encodes aggregated data, i.e. averaged and Haar wavelet compressed coefficients. Multi-byte data types are stored little endian byte order.
+For the coefficient generation the raw sensor values (temperature in 100th centigrades, humidity in 10th of percents) are averaged without offset conversion and 256 of the average values compressed using Haar wavelet transform.
+Both, temperature (18bit signed) and humidity (14bit signed) coefficients contain additional addition 8 Bits for the index, which is added as MSB to the actual coefficient data. 
+
+*The aggregate indexed coefficient value* (see [data.h:data_encode_aggregate()](data.h))
+
+- Byte `0-3`: The 32bit unix timestamp is used for: index of the aggregate (8 MSB of timestamp), the humidity data (22 bit) and most significant two temperature value bits (2 LSB of timestamp)
+- Byte `4-6`: 24 LSB Bits of temperature data (little endian)
+
 
 ### BLE packet data
 
@@ -167,3 +187,5 @@ The bytes of a BLE packet are organized as follows
 - Byte `1`: BLE Manufacturer-Specific Data Flag `0xFF`
 - Byte `2`: BLE Company ID LSB used for current system status flag
 - Bytes `3-30`: 1 up to 4 data units using the same binary data format as for FRAM.
+
+

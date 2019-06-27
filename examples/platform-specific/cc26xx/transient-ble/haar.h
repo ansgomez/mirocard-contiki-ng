@@ -29,17 +29,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*---------------------------------------------------------------------------*/
-#ifndef ENERGY_MODELL_H_
-#define ENERGY_MODELL_H_
+#ifndef HAAR_H_
+#define HAAR_H_
+/*---------------------------------------------------------------------------*/
+#include <stdint.h>
 /*---------------------------------------------------------------------------*/
 /**
- * The energy consumed per application cycle [in nJ]
+ * Compression using the Haar Wavelet Transformation.
+ *
+ * @param data (in/out) The data array to compress, overwritten in place.
+ * @param size (in) The size of the data array, needs to be a power of 2.
  */
-#define ENERGY_PER_ACTIVATION 160000
+void haar_compress_inplace(int32_t *const data, uint32_t size);
 /**
- * The power consumed by the application in low power mode [in nW]
+ * Decompression using the Haar Wavelet Transformation.
+ *
+ * @param data (in/out) The data array to decompress, overwritten in place.
+ * @param size (in) The size of the data array, needs to be a power of 2.
  */
-#define ENERGY_SLEEP_POWER 0
+void haar_decompress_inplace(int32_t *const data, uint32_t size);
 /*---------------------------------------------------------------------------*/
-#endif /* ENERGY_MODELL_H_ */
+#endif /* HAAR_H_ */
 /*---------------------------------------------------------------------------*/

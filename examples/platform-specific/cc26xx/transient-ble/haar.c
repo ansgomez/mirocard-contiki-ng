@@ -28,18 +28,49 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/* ------------------------------------------------------------------------- */
+#include <stdint.h>
+#include <string.h>
+
+#include "haar.h"
 /*---------------------------------------------------------------------------*/
-#ifndef ENERGY_MODELL_H_
-#define ENERGY_MODELL_H_
+#define INV_SQRT2   7071 / 10000
+// #define INV_SQRT2   707 / 1000
+// #define INV_SQRT2   (0.707106781)
 /*---------------------------------------------------------------------------*/
-/**
- * The energy consumed per application cycle [in nJ]
- */
-#define ENERGY_PER_ACTIVATION 160000
-/**
- * The power consumed by the application in low power mode [in nW]
- */
-#define ENERGY_SLEEP_POWER 0
+void haar_compress_inplace(int32_t *const data, uint32_t size) {
+  // do not transform anything if size is not a power of two
+  if ((size & (size - 1)) > 0) {
+    return;
+  }
+
+  // increment index shift of the sum terms (array end aligned)
+  for (uint32_t shift = 1; shift < size; shift = 2 * shift) {
+    // calculate next level of diff and sum terms
+    for (uint32_t i = shift - 1; i < size; i = i + 2 * shift) {
+      int32_t diff = (data[i + shift] - data[i]) * INV_SQRT2;
+      int32_t sum = (data[i + shift] + data[i]) * INV_SQRT2;
+      data[i] = diff;
+      data[i + shift] = sum;
+    }
+  }
+}
 /*---------------------------------------------------------------------------*/
-#endif /* ENERGY_MODELL_H_ */
+void haar_decompress_inplace(int32_t *const data, uint32_t size) {
+  // do not transform anything if size is not a power of two
+  if ((size & (size - 1)) > 0) {
+    return;
+  }
+
+  // decrement index shift of the sum terms (array end aligned)
+  for (uint32_t shift = size / 2; shift > 0; shift = shift / 2) {
+    // calculate current level of value and sum terms
+    for (uint32_t i = shift - 1; i < size; i = i + 2 * shift) {
+      int32_t val = (data[i + shift] - data[i]) * INV_SQRT2;
+      int32_t sum = (data[i + shift] + data[i]) * INV_SQRT2;
+      data[i] = val;
+      data[i + shift] = sum;
+    }
+  }
+}
 /*---------------------------------------------------------------------------*/

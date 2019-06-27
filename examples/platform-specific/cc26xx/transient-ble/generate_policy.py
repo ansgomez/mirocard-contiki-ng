@@ -2,6 +2,7 @@
 # generate the policy pool file
 import sys
 import numpy as np
+from datetime import datetime
 
 # filename definitions
 TEMPLATE_FILE = 'policy-pool.inc'
@@ -11,9 +12,9 @@ OUTPUT_FILE = 'policy-pool.h'
 # check for policy file passed to the script
 if len(sys.argv) > 1:
     # load policy pool from file
-    policy_file = sys.argv[1]
-    print('loading policy from file {:s}'.format(policy_file))
-    pool = np.load(policy_file)
+    POLICY_FILE = sys.argv[1]
+    print('loading policy from file {:s}'.format(POLICY_FILE))
+    pool = np.load(POLICY_FILE)
 
     POWER_LEVELS = len(pool)
     HISTORY = list(pool.values())[0]['HISTORY']
@@ -42,6 +43,7 @@ if len(sys.argv) > 1:
 else:
     # use default values
     print('using default policy')
+    POLICY_FILE = '<none>'
     POWER_LEVELS = 5
     BUFFER_SIZE = 200
     AGGREGATES = 5
@@ -55,6 +57,8 @@ else:
 # generate replacement strings
 np.set_printoptions(threshold=2*POWER_LEVELS*BUFFER_SIZE)
 replacements = {
+    'GENERATION_TIME': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+    'POLICY_FILE': POLICY_FILE,
     'POWER_LEVELS': str(POWER_LEVELS),
     'BUFFER_SIZE': str(BUFFER_SIZE),
     'AGGREGATES': str(AGGREGATES),

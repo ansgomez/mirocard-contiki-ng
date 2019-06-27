@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Swiss Federal Institute of Technology (ETH Zurich)
+ * Copyright (c) 2019, Swiss Federal Institute of Technology (ETH Zurich)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,14 +69,6 @@ const uint16_t* const policy_generate_selection(uint8_t power_level);
  * @return The scaling factor of the base delta for the given power level
  */
 uint16_t policy_get_delta_factor(uint8_t power_level);
-/**
- * Update aggregate values
- * 
- * @param buffer Buffer containing the aggregate values to update
- * @param value The current sensor value to use for updating the aggregates
- */
-void policy_update_aggregates(transient_data_unit_t* const buffer,
-                              const transient_data_unit_t* const value);
 /*---------------------------------------------------------------------------*/
 #endif /* POLICY_H_ */
 /*---------------------------------------------------------------------------*/

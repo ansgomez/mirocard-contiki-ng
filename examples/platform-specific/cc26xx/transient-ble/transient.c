@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Swiss Federal Institute of Technology (ETH Zurich)
+ * Copyright (c) 2019, Swiss Federal Institute of Technology (ETH Zurich)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 #include "rf-core/rf-ble.h"
 #include "board-peripherals.h"
 
+#include "data.h"
 #include "policy.h"
 
 #include "transient.h"
@@ -52,18 +53,35 @@
 #define PRINTF(...)
 #endif
 /* ------------------------------------------------------------------------- */
+/**
+ * Set peripherals to sleep, configure EMU and enter deep sleep.
+ * @note This function enters deep sleep and does NOT return.
+ * @param emu_energy EMU energy burst size for wakeup
+ * @param emu_voltage Voltage level for next EMU energy burst
+ */
+static inline void transient_shutdown(emu_energy_burst_t emu_energy,
+                                      emu_output_voltage_t emu_voltage) {
+  // close memory and send to sleep
+  ext_fram_close(NULL);
+
+  /* configure EMU, just before going into shutdown */
+  emu_configure(emu_energy, emu_voltage);
+
+  // LPM with GPIO triggered wakeup
+  lpm_shutdown(WAKEUP_TRIGGER_IOID, IOC_NO_IOPULL, WAKEUP_TRIGGER_EDGE);
+}
+/* ------------------------------------------------------------------------- */
 PROCESS(transient_app_process, "Transient application process");
 AUTOSTART_PROCESSES(&transient_app_process);
 /* ------------------------------------------------------------------------- */
 PROCESS_THREAD(transient_app_process, ev, data) {
-  static transient_sys_state_t system_state_old;
-  static transient_sys_state_t system_state;
-  static uint16_t delta_factor;
-  static const uint16_t* sample_selection;
+  static transient_system_state_t system_state_old;
+  static transient_system_state_t system_state;
+  // static uint16_t delta_factor;
+  static const uint16_t* selection_indexes;
   static transient_data_unit_t data_buffer[POLICY_SELECTION_SIZE];
-  static transient_data_unit_t aggregates_buffer[POLICY_BUFFER_AGGREGATES];
+  // static transient_data_unit_t aggregates_buffer[POLICY_BUFFER_AGGREGATES];
   static uint8_t ble_payload[BLE_ADV_MAX_SIZE];
-  static uint8_t ble_payload_size;
   static am0815_tm_t timestamp;
   static int temperature;
   static int humidity;
@@ -85,19 +103,10 @@ PROCESS_THREAD(transient_app_process, ev, data) {
     gpio_hal_arch_set_pin(BOARD_IOID_GPIO_4);
     /*-----------------------------------------------------------------------*/
     /* cold start init for sleep only */
-
-    // set peripherals to sleep (i.e. FRAM)
-    // close memory and send to sleep
-    ext_fram_close(NULL);
-    /*-----------------------------------------------------------------------*/
-    /* configure EMU, just before going into shutdown */
-    emu_configure(system_state.emu_energy, EMU_DEFAULT_VOLTAGE);
-
-    // LPM with GPIO triggered wakeup
-    lpm_shutdown(WAKEUP_TRIGGER_IOID, IOC_NO_IOPULL, WAKEUP_TRIGGER_EDGE);
+    transient_shutdown(EMU_DEFAULT_BURST, EMU_DEFAULT_VOLTAGE);
     /*-----------------------------------------------------------------------*/
   } else {
-    /* wakeup form LPM on GPIO trigger, do initialize for execution */
+    /* wakeup from LPM on GPIO trigger, do initialize for execution */
 
     // set active voltage
     emu_set_voltage(EMU_VOLTAGE_3_3V);
@@ -113,8 +122,7 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   /* restore backed up system state from FRAM */
 
   // read previous system state
-  ret = ext_fram_read(NULL, FRAM_SYSTEM_STATE_ADDR, sizeof(system_state_old),
-                      (uint8_t*)&system_state_old);
+  ret = data_load_system_state(&system_state_old);
   if (ret == false) {
     PRINTF("FRAM read failed\n");
 
@@ -179,6 +187,9 @@ PROCESS_THREAD(transient_app_process, ev, data) {
     am0815_close(NULL);
   }
 
+  /*-------------------------------------------------------------------------*/
+  /* Time based system state updates */
+
   // store (potentially invalid) timestamp in system state
   system_state.activation_time = am0815_timestamp_to_seconds(&timestamp);
 
@@ -197,10 +208,7 @@ PROCESS_THREAD(transient_app_process, ev, data) {
     system_state.power_level = policy_estimate_power_level(activation_interval);
   }
 
-  // get time unit scaling factor
-  delta_factor = policy_get_delta_factor(system_state.power_level);
-
-  // disable RTC backup domain charging, revert to lower supply voltage
+  // disable RTC backup domain charging, ((revert to lower supply voltage))
   gpio_hal_arch_clear_pin(BOARD_IOID_AM0815_CHARGE);
   // emu_set_voltage(EMU_VOLTAGE_2_3V);
 
@@ -227,93 +235,25 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   /*-------------------------------------------------------------------------*/
   /* Sensor data management */
 
-  // assemble new data unit structure
-  transient_data_unit_encode(&data_buffer[0], system_state.activation_time,
-                             temperature, humidity);
+  // init buffer
+  ret = data_init(system_state.activation_time, system_state.power_level);
+  if (ret == false) {
+    PRINTF("Data buffer initialization failed\n");
+    system_state.status |= SYSTEM_STATUS_FRAM_RESTORE_ERROR;
+  }
 
-  // check whether buffer reset is needed
+  // check and reset buffer if needed
   if ((system_state.status & SYSTEM_STATUS_RTC_ACCESS_ERROR) ||
       (system_state.status & SYSTEM_STATUS_RTC_READ_ERROR) ||
       (system_state.status & SYSTEM_STATUS_FRAM_RESTORE_ERROR) ||
       (system_state.status & SYSTEM_STATUS_TIMER_RESET)) {
     PRINTF("FRAM buffer reset due FRAM restore or RTC error/reset\n");
+    data_reset_buffer(system_state.activation_time);
     system_state.status |= SYSTEM_STATUS_BUFFER_RESET;
   }
 
-  // load/reset buffer state
-  if (system_state.status & SYSTEM_STATUS_BUFFER_RESET) {
-    // drop buffered data
-    system_state.data_history_head_idx = 0;
-    system_state.data_history_tail_idx = 0;
-  } else {
-    // use buffer stored in FRAM
-    system_state.data_history_head_idx = system_state_old.data_history_head_idx;
-    system_state.data_history_tail_idx = system_state_old.data_history_tail_idx;
-  }
-
-  // potentially write value multiple times to account for delta scaling
-  for (uint16_t i = 0; i < delta_factor; i++) {
-    // calculate FRAM write address
-    uint32_t addr_write = FRAM_HISTORY_BASE_ADDR + sizeof(transient_data_unit_t) *
-                          (uint32_t)system_state.data_history_head_idx;
-    PRINTF("FRAM write new data unit at 0x%05lx\n", addr_write);
-
-    // write data unit to FRAM
-    ret = ext_fram_write(NULL, addr_write, sizeof(transient_data_unit_t),
-                        (uint8_t*)&data_buffer[0]);
-    if (ret == false) {
-        PRINTF("FRAM saving data unit failed\n");
-        system_state.status |= SYSTEM_STATUS_FRAM_WRITE_ERROR;
-    } else {
-      // update buffer pointers on success write
-      system_state.data_history_head_idx++;
-      if (system_state.data_history_head_idx == FRAM_HISTORY_SIZE) {
-        system_state.data_history_head_idx = 0;
-      }
-
-      // on full buffer (head maps to tail): drop oldest value
-      if (system_state.data_history_head_idx == system_state.data_history_tail_idx) {
-        system_state.data_history_tail_idx++;
-        if (system_state.data_history_tail_idx == FRAM_HISTORY_SIZE) {
-          system_state.data_history_tail_idx = 0;
-        }
-      }
-    }
-
-    PRINTF("FRAM buffer state:   head = %4u,   tail = %4u\n",
-      system_state.data_history_head_idx, system_state.data_history_tail_idx);
-  }
-
-  /*-------------------------------------------------------------------------*/
-  // handle update/reset of aggregate values
-  if (system_state.status & SYSTEM_STATUS_BUFFER_RESET) {
-    // reset aggregates to current reading
-    for (uint16_t i = 0; i < POLICY_BUFFER_AGGREGATES; i++) {
-      data_buffer[0].time = (TIMESTAMP_INVALID - 1) - (uint32_t)i;
-      aggregates_buffer[i] = data_buffer[0];
-    }
-  } else {
-    // read aggregate values from FRAM
-    ret = ext_fram_read(NULL, FRAM_AGGREGATE_BASE_ADDR,
-                        POLICY_BUFFER_AGGREGATES * sizeof(transient_data_unit_t),
-                        (uint8_t*)aggregates_buffer);
-    if (ret == false) {
-      PRINTF("FRAM read aggregate data units failed\n");
-      system_state.status |= SYSTEM_STATUS_FRAM_READ_ERROR;
-    }
-
-    // update aggregates with current sensor reading
-    policy_update_aggregates(aggregates_buffer, &data_buffer[0]);
-  }
-
-  // write aggregate data units to FRAM
-  ret = ext_fram_write(NULL, FRAM_AGGREGATE_BASE_ADDR,
-                       POLICY_BUFFER_AGGREGATES * sizeof(transient_data_unit_t),
-                       (uint8_t*)aggregates_buffer);
-  if (ret == false) {
-      PRINTF("FRAM saving aggregate data units failed\n");
-      system_state.status |= SYSTEM_STATUS_FRAM_WRITE_ERROR;
-  }
+  // store the measurement to memory
+  data_store_measurement(system_state.activation_time, temperature, humidity);
 
   /*-------------------------------------------------------------------------*/
   // GPIO CONFIG 2+3
@@ -325,12 +265,12 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   policy_init();
 
   // get sample indexes for estimated power_level
-  sample_selection = policy_generate_selection(system_state.power_level);
+  selection_indexes = policy_generate_selection(system_state.power_level);
 
 #if DEBUG
   PRINTF("selected samples:  ");
   for (uint16_t i = 0; i < POLICY_SELECTION_SIZE; i++) {
-    PRINTF("%5u ", sample_selection[i]);
+    PRINTF("%5u ", selection_indexes[i]);
   }
   PRINTF("\n");
 #endif
@@ -341,60 +281,19 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   /*-------------------------------------------------------------------------*/
   /* Assemble BLE packet for transmission */
 
-  // history buffer size calculation for truncating selection
-  uint16_t fram_buffer_size = (FRAM_HISTORY_SIZE + system_state.data_history_head_idx - 
-                          system_state.data_history_tail_idx) % FRAM_HISTORY_SIZE;
-  PRINTF("FRAM buffer size: %5u of %5u\n", fram_buffer_size, FRAM_HISTORY_SIZE);
-
-  // get packet data from the FRAM
-  for (uint16_t i = 0; i < POLICY_SELECTION_SIZE; i++) {
-    uint32_t addr_read;
-    // truncate invalid samples
-    if (sample_selection[i] == POLICY_SELECTION_UNSET) {
-      // unset value selections: use current sensor value
-      addr_read = FRAM_HISTORY_BASE_ADDR + sizeof(transient_data_unit_t) *
-                  ((FRAM_HISTORY_SIZE + 
-                    (uint32_t)system_state.data_history_head_idx - 1) %
-                   FRAM_HISTORY_SIZE);
-    } else if (sample_selection[i] >= POLICY_AGGREGATE_OFFSET) {
-      // aggregate values: use bufferd aggregates
-      data_buffer[i] = aggregates_buffer[sample_selection[i] -
-                                         POLICY_AGGREGATE_OFFSET];
-      continue; // skip FRAM read
-    } else {
-      // buffered sensor values
-      if (sample_selection[i] * delta_factor >= fram_buffer_size) {
-        // truncate selection to oldest element if scaled index beyond buffer size
-        addr_read = FRAM_HISTORY_BASE_ADDR + sizeof(transient_data_unit_t) *
-                    (uint32_t)system_state.data_history_tail_idx;
-      } else {
-        // calculate data value address in buffer (scaled with delta factor)
-        addr_read = FRAM_HISTORY_BASE_ADDR + sizeof(transient_data_unit_t) *
-                    ((FRAM_HISTORY_SIZE +
-                      (uint32_t)system_state.data_history_head_idx - 1 -
-                      sample_selection[i] * delta_factor) % FRAM_HISTORY_SIZE);
-      }
-    }
-    PRINTF("FRAM read data unit # %5u at 0x%05lx\n", sample_selection[i], addr_read);
-
-    // read value from FRAM
-    ret = ext_fram_read(NULL, addr_read, sizeof(transient_data_unit_t), 
-                        (uint8_t*)(&data_buffer[i]));
-    if (ret == false) {
-      PRINTF("FRAM read data unit failed\n");
-      system_state.status |= SYSTEM_STATUS_FRAM_READ_ERROR;
-    }
+  // load the data selected from data buffer
+  ret = data_load_selection(data_buffer, selection_indexes, POLICY_SELECTION_SIZE);
+  if (ret == false) {
+    PRINTF("loading selected data failed\n");
+    system_state.status |= SYSTEM_STATUS_FRAM_READ_ERROR;
   }
-
-  // build packets for all selected values
-  uint16_t selection_index = 0;
 
   /*
    * Assemble manufacturer specific BLE beacon payload, see README.md for
    * detailed definition of the BLE packet structure.
    */
-
-  ble_payload_size = 1; // setting payload size field at the end
+  uint16_t selection_index = 0; // data buffer index counter
+  uint8_t ble_payload_size = 1; // setting payload size field at the end
   ble_payload[ble_payload_size++] = BLE_ADV_TYPE_MANUFACTURER;
   ble_payload[ble_payload_size++] = system_state.status;
   // add data units up to full packet size
@@ -431,10 +330,8 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   // revert to lower supply voltage
   emu_set_voltage(EMU_VOLTAGE_2_3V);
 
-  // init RF core APIs
+  // init RF core APIs and configure TX power
   rf_core_set_modesel();
-
-  // configure RF TX power
   rf_ble_set_tx_power(BLE_RF_TX_POWER);
 
   // transmit BLE beacon
@@ -446,13 +343,21 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   /*-------------------------------------------------------------------------*/
   /* cleanup and prepare shutdown */
 
+  // close data buffer to store data state
+  ret = data_close();
+  if (ret == false) {
+    PRINTF("Data access close operation failed\n");
+    // no system state update, as lost anyway beyond this point
+  } else {
+    PRINTF("Data access closed\n");
+  }
+
   // store next EMU burst configuration
   system_state.emu_energy = EMU_BURST_SMALL;
   system_state.emu_voltage = EMU_VOLTAGE_2_3V;
 
   // backup current system state
-  ret = ext_fram_write(NULL, FRAM_SYSTEM_STATE_ADDR, sizeof(system_state),
-                       (uint8_t*)&system_state);
+  ret = data_store_system_state(&system_state);
   if (ret == false) {
     PRINTF("FRAM backup system state failed\n");
       // no system state update, as lost anyway beyond this point
@@ -461,14 +366,8 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   }
   PRINTF("\n");
 
-  // close memory and send to sleep
-  ext_fram_close(NULL);
-  /*-------------------------------------------------------------------------*/
-  /* configure EMU, just before going into shutdown */
-  emu_configure(system_state.emu_energy, EMU_DEFAULT_VOLTAGE);
-
-  // LPM with GPIO triggered wakeup
-  lpm_shutdown(WAKEUP_TRIGGER_IOID, IOC_NO_IOPULL, WAKEUP_TRIGGER_EDGE);
+  /* shutdown system for sleep */
+  transient_shutdown(system_state.emu_energy, system_state.emu_voltage);
   /*-------------------------------------------------------------------------*/
   PROCESS_END();
 }

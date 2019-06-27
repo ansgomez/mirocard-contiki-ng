@@ -1,6 +1,6 @@
 CONTIKI_PROJECT = transient
 
-CONTIKI_SOURCEFILES += policy.c
+CONTIKI_SOURCEFILES += policy.c data.c haar.c
 
 PLATFORMS_ONLY = srf06-cc26xx
 
@@ -10,12 +10,14 @@ MAKE_ROUTING = MAKE_ROUTING_NULLROUTING
 
 # BSL_FLAGS += -b 115200
 
-all: $(CONTIKI_PROJECT)
+POLICY := policies/pool_deterministic10.pkl
+
+all: policy-pool $(CONTIKI_PROJECT)
 
 info: $(CONTIKI_PROJECT).elf
 	arm-none-eabi-size --format=sysv --radix=10 --totals --common $<
 
-policy-pool.h:
+policy-pool:
 	python3 generate_policy.py $(POLICY)
 
 policy-clean:
@@ -23,6 +25,6 @@ policy-clean:
 
 clean: policy-clean
 
-.PHONY: policy-pool.h
+# .PHONY: clean policy-clean policy-pool
 
 include $(CONTIKI)/Makefile.include
