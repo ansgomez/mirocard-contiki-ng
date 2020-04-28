@@ -1,6 +1,29 @@
 # Transient BLE Node
 
-Base line contiki-ng application for the EMU powered transiently powered ambient sensor node with BLE beacon broadcasting.
+Baseline contiki-ng application for the EMU powered transiently powered ambient sensor node with BLE beacon broadcasting.
+
+
+## Getting Started
+
+To build the project, make sure the [required software](https://github.com/contiki-ng/contiki-ng/wiki/Platform-srf06-cc26xx#requirements) is installed before you continue.
+
+
+The command to compile the project is:
+```bash
+make TARGET=srf06-cc26xx BOARD=transient/cc2650
+```
+
+You can specify to compile with a specific policy using the `POLICY` parameters, e.g.
+```bash
+make TARGET=srf06-cc26xx BOARD=transient/cc2650 POLICY=policies/pool_stochastic_60.pkl
+```
+
+For flashing the binary there are multiple options, see the [contiki-ng wiki](https://github.com/contiki-ng/contiki-ng/wiki/Platform-srf06-cc26xx#how-to-program-your-device) for detailed explanation. Initial flashing needs to be done via JTAG to flash the bootloader code. Afterwards the bootloader option is available: to compile and flash the binary in one command, you may use the following do-all-in-one command (replace `/dev/ttyUSB0` with your device):
+```bash
+make TARGET=srf06-cc26xx BOARD=transient/cc2650 POLICY=policies/pool_stochastic_60.pkl PORT=/dev/ttyUSB0 transient.upload
+```
+
+Sometimes the build system hangs up. In that case a complete cleanup and rebuild (also in the contiki tree) usually helps.
 
 
 ## Component Characteristics
@@ -39,7 +62,7 @@ All numbers are the typical values at room temperature taken from the respective
 | AM0815: XT OSC start                  |         0.4 s |           N/A |
 |                                                                       |
 | FM25V10: power up                     |        250 us |           N/A |
-| FM25V10: sleep revocery               |           N/A |        400 us |
+| FM25V10: sleep recovery               |           N/A |        400 us |
 |                                                                       |
 | SHT3x: power up                       |        0.5 ms |          1 ms |
 | SHT3x: soft reset                     |        0.5 ms |          1 ms |
@@ -137,7 +160,7 @@ All numbers are the typical values at room temperature taken from the respective
 
 ### Data storage in FRAM memory
 
-The last system state is storead at address `0x00` in the FRAM (last successfully
+The last system state is stored at address `0x00` in the FRAM (last successfully
 saved system state after completing an full activation).
 
 The sensor data history is stored in a ring buffer in the remaining FRAM memory,
@@ -171,7 +194,7 @@ This results in the following *sensor value* data format (see [data.h:data_encod
 ### Aggregate data unit format
 
 A second data type encodes aggregated data, i.e. averaged and Haar wavelet compressed coefficients. Multi-byte data types are stored little endian byte order.
-For the coefficient generation the raw sensor values (temperature in 100th centigrades, humidity in 10th of percents) are averaged without offset conversion and 256 of the average values compressed using Haar wavelet transform.
+For the coefficient generation the raw sensor values (temperature in 100th centigrade, humidity in 10th percent) are averaged without offset conversion and 256 of the average values compressed using Haar wavelet transform.
 Both, temperature (18bit signed) and humidity (14bit signed) coefficients contain additional addition 8 Bits for the index, which is added as MSB to the actual coefficient data. 
 
 *The aggregate indexed coefficient value* (see [data.h:data_encode_aggregate()](data.h))
@@ -187,5 +210,3 @@ The bytes of a BLE packet are organized as follows
 - Byte `1`: BLE Manufacturer-Specific Data Flag `0xFF`
 - Byte `2`: BLE Company ID LSB used for current system status flag
 - Bytes `3-30`: 1 up to 4 data units using the same binary data format as for FRAM.
-
-

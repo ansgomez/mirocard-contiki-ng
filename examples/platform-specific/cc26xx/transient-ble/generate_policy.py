@@ -14,7 +14,7 @@ if len(sys.argv) > 1:
     # load policy pool from file
     POLICY_FILE = sys.argv[1]
     print('loading policy from file {:s}'.format(POLICY_FILE))
-    pool = np.load(POLICY_FILE)
+    pool = np.load(POLICY_FILE, allow_pickle=True)
 
     POWER_LEVELS = len(pool)
     HISTORY = list(pool.values())[0]['HISTORY']

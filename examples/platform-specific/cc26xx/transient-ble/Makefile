@@ -1,3 +1,5 @@
+CONTIKI ?= ../../../../
+
 CONTIKI_PROJECT = transient
 
 CONTIKI_SOURCEFILES += policy.c data.c haar.c
