@@ -1,0 +1,14 @@
+CFLAGS += -DBOARD_TRANSIENT=1
+CFLAGS += -DBACKDOOR_IOID=0x00000000
+
+CONTIKI_TARGET_DIRS += miromico-batteryless common
+
+BOARD_SOURCEFILES += batteryless-sensors.c board-buttons.c sensor-common.c
+BOARD_SOURCEFILES += opt-3001-sensor.c mpu-9250-sensor.c
+BOARD_SOURCEFILES += board.c board-i2c.c
+
+### TODO: Include shtc3
+### MODULES += arch/dev/shtc3
+
+### Signal that we can be programmed with cc2538-bsl
+BOARD_SUPPORTS_BSL = 1
