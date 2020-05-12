@@ -39,15 +39,15 @@
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
 /**
- * Transient system state structure
+ * Batteryless system state structure
  */
-typedef struct transient_system_state {
+typedef struct batteryless_system_state {
   uint8_t status;
   uint8_t task_id;
   uint8_t reset_source;
   uint8_t power_level;
   uint32_t activation_time;
-} transient_system_state_t;
+} batteryless_system_state_t;
 /*---------------------------------------------------------------------------*/
 /**
  * System status flags

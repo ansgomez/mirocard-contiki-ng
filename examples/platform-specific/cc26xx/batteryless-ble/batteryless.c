@@ -70,8 +70,8 @@ PROCESS(transient_app_process, "Transient application process");
 AUTOSTART_PROCESSES(&transient_app_process);
 /* ------------------------------------------------------------------------- */
 PROCESS_THREAD(transient_app_process, ev, data) {
-  static transient_system_state_t system_state_old;
-  static transient_system_state_t system_state;
+  static batteryless_system_state_t system_state_old;
+  static batteryless_system_state_t system_state;
   static batteryless_data_unit_t data_buffer;
   static uint8_t ble_payload[BLE_ADV_MAX_SIZE];
   static uint32_t timestamp;
