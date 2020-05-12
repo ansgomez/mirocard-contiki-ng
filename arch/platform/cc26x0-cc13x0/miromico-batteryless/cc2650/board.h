@@ -62,8 +62,10 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define LEDS_CONF_COUNT           1
+#define LEDS_CONF_COUNT           3
 #define LEDS_CONF_GREEN           1
+#define LEDS_CONF_RED             2
+#define LEDS_CONF_BLUE            3
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -73,7 +75,9 @@
  * @{
  */
 #define BOARD_IOID_LED_1          IOID_11
-#define BOARD_LED_ALL             BOARD_IOID_LED_1
+#define BOARD_IOID_LED_2          IOID_18
+#define BOARD_IOID_LED_3          IOID_19
+#define BOARD_LED_ALL             ((1 << LEDS_CONF_COUNT) - 1)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
