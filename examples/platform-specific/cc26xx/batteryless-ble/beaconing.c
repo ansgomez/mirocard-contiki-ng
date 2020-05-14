@@ -42,9 +42,9 @@
 
 #include "data.h"
 
-#include "batteryless.h"
+#include "beaconing.h"
 /*---------------------------------------------------------------------------*/
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #if !(CC26XX_UART_CONF_ENABLE)
@@ -88,22 +88,23 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   system_state.reset_source = ti_lib_sys_ctrl_reset_source_get();
   PRINTF("Reset source: 0x%x\n", (uint8_t)system_state.reset_source);
 
-  // if not triggered by GPIO or emulated, cold start init for sleep only
-  if (system_state.reset_source != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
-    /*-----------------------------------------------------------------------*/
-    // GPIO CONFIG 1-a
-    ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
-    /*-----------------------------------------------------------------------*/
-    /* cold start init for sleep only */
-    batteryless_shutdown();
-    /*-----------------------------------------------------------------------*/
-  } else {
-    /* wakeup from LPM on GPIO trigger, do initialize for execution */
-
-    // reset default system state and task id
-    system_state.status = 0x00;
-    system_state.task_id = 0;
-  }
+  // // if not triggered by GPIO or emulated, cold start init for sleep only
+  // if (system_state.reset_source != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
+  //   /*-----------------------------------------------------------------------*/
+  //   PRINTF("Going to sleep waiting for trigger\n");
+  //   // GPIO CONFIG 1-a
+  //   ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
+  //   /*-----------------------------------------------------------------------*/
+  //   /* cold start init for sleep only */
+  //   batteryless_shutdown();
+  //   /*-----------------------------------------------------------------------*/
+  // } else {
+  //   /* wakeup from LPM on GPIO trigger, do initialize for execution */
+  //   PRINTF("Woken up to perform a task\n");
+  //   // reset default system state and task id
+  //   system_state.status = 0x00;
+  //   system_state.task_id = 0;
+  // }
 
   /*-------------------------------------------------------------------------*/
   // GPIO CONFIG 1+2
@@ -170,13 +171,13 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   /*-------------------------------------------------------------------------*/
   /* assemble data packet */
   data_buffer.time = timestamp;
-  data_buffer.data[0] = 0xFF;
-  data_buffer.data[1] = 0xFF;
-  data_buffer.data[2] = 0xFF;
+  data_buffer.data[0] = 0xAB;
+  data_buffer.data[1] = 0xCD;
+  data_buffer.data[2] = 0xEF;
    
 #if DEBUG
   PRINTF("sample:  ");
-  for (uint16_t i = 0; i < BUFFER_SIZE; i++) {
+  for (uint16_t i = 0; i < BATTERYLESS_DATA_UNIT_SIZE; i++) {
     PRINTF("%5u ", data_buffer.bytes[i]);
   }
   PRINTF("\n");

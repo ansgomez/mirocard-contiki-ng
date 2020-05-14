@@ -37,7 +37,7 @@
 #include <stdint.h>
 #include "sys/cc.h"
 
-#include "batteryless.h"
+#include "beaconing.h"
 /*---------------------------------------------------------------------------*/
 typedef struct batteryless_data_state {
   uint16_t history_head_index;

@@ -30,8 +30,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*---------------------------------------------------------------------------*/
-#ifndef BATTERYLESS_H_
-#define BATTERYLESS_H_
+#ifndef __BATTERYLESS_BEACONING_H
+#define __BATTERYLESS_BEACONING_H
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "board.h"

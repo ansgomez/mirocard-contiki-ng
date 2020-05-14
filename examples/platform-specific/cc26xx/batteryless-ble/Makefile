@@ -1,6 +1,10 @@
 CONTIKI ?= ../../../../
 
-CONTIKI_PROJECT = batteryless
+CONTIKI_PROJECT = beaconing
+
+TARGET=cc26x0-cc13x0
+BOARD=miromico-batteryless/cc2650
+CFLAGS += -g
 
 CONTIKI_SOURCEFILES += data.c
 
