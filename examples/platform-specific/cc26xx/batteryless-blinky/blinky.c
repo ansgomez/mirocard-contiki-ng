@@ -37,10 +37,12 @@
 #include "contiki.h"
 #include "ti-lib.h"
 #include "leds.h"
+#include "board.h"
+#include "dev/gpio-hal.h"
 
 #include "blinky.h"
 /*---------------------------------------------------------------------------*/
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #if !(CC26XX_UART_CONF_ENABLE)
@@ -67,9 +69,8 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   // check reset source for power on reset and clear flags
   PRINTF("Reset source: 0x%x\n", (uint8_t)ti_lib_sys_ctrl_reset_source_get());
 
-
 // set the etimer module to generate an event in one second.
-    etimer_set(&timer, 3* CLOCK_SECOND );
+    etimer_set(&timer, CLOCK_SECOND );
     while (1)
     {
         // wait here for an event to happen
@@ -80,16 +81,18 @@ PROCESS_THREAD(transient_app_process, ev, data) {
         {
           if(aux) 
           {
+            PRINTF("Turning On\n");
             // TOGGLE LED
-            leds_single_on(LEDS_GREEN);
+            // leds_single_on(LEDS_GREEN);
             // leds_single_on(LEDS_RED);
-            // leds_single_on(LEDS_BLUE);
+            leds_single_on(LEDS_BLUE);
           }
           else
           {
-            leds_single_off(LEDS_GREEN);
+            PRINTF("Turning Off\n");
+            // leds_single_off(LEDS_GREEN);
             // leds_single_off(LEDS_RED);
-            // leds_single_off(LEDS_BLUE);
+            leds_single_off(LEDS_BLUE);
           }
           
           aux = !aux;
