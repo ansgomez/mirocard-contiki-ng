@@ -2,6 +2,11 @@ CONTIKI ?= ../../../../
 
 CONTIKI_PROJECT = blinky
 
+TARGET=cc26x0-cc13x0
+BOARD=miromico-batteryless/cc2650
+CFLAGS += -g
+
+
 PLATFORMS_ONLY = cc26x0-cc13x0
 
 MAKE_MAC = MAKE_MAC_NULLMAC
