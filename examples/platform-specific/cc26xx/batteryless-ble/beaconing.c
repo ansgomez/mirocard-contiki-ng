@@ -39,6 +39,7 @@
 #include "ti-lib.h"
 #include "rf-core/rf-ble.h"
 #include "board-peripherals.h"
+#include "lib/sensors.h"
 
 #include "data.h"
 
@@ -69,12 +70,97 @@ static inline void batteryless_shutdown() {
 PROCESS(transient_app_process, "Transient application process");
 AUTOSTART_PROCESSES(&transient_app_process);
 /* ------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* ------------------------------------------------------------------------- */
+static void
+print_mpu_reading(int reading)
+{
+  if(reading < 0) {
+    printf("-");
+    reading = -reading;
+  }
+
+  PRINTF("%d.%02d", reading / 100, reading % 100);
+}
+/*---------------------------------------------------------------------------*/
+static void
+init_sensor_readings(void)
+{
+  SENSORS_ACTIVATE(opt_3001_sensor);
+
+  mpu_9250_sensor.configure(SENSORS_ACTIVE, MPU_9250_SENSOR_TYPE_ACC);
+}
+/*---------------------------------------------------------------------------*/
+static void
+get_light_reading(uint16_t* value)
+{
+  int aux;
+
+  aux = opt_3001_sensor.value(0);
+  if(aux != CC26XX_SENSOR_READING_ERROR) {
+    PRINTF("OPT: Light=%d.%02d lux\n", aux / 100, aux % 100);
+  } else {
+    PRINTF("OPT: Light Read Error\n");
+  }
+
+  *value = (uint16_t) aux;
+}
+/*---------------------------------------------------------------------------*/
+static void
+get_mpu_reading(int value[3])
+{
+  // int aux;
+
+  // clock_time_t next = SENSOR_READING_PERIOD +
+  //   (random_rand() % SENSOR_READING_RANDOM);
+
+  // PRINTF("MPU Gyro: X=");
+  // aux = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_X);
+  // print_mpu_reading(aux);
+  // PRINTF(" deg/sec\n");
+
+  // PRINTF("MPU Gyro: Y=");
+  // aux = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Y);
+  // print_mpu_reading(aux);
+  // PRINTF(" deg/sec\n");
+
+  // PRINTF("MPU Gyro: Z=");
+  // aux = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Z);
+  // print_mpu_reading(aux);
+  // PRINTF(" deg/sec\n");
+
+  PRINTF("MPU Acc: X=");
+  value[0] = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_X);
+  print_mpu_reading(value[0]);
+  PRINTF(" G\n");
+
+  PRINTF("MPU Acc: Y=");
+  value[1] = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Y);
+  print_mpu_reading(value[1]);
+  PRINTF(" G\n");
+
+  PRINTF("MPU Acc: Z=");
+  value[2] = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Z);
+  print_mpu_reading(value[2]);
+  PRINTF(" G\n");
+
+  if(value[0] == CC26XX_SENSOR_READING_ERROR) {
+    printf("Unable to read properly\n");
+  }
+
+  SENSORS_DEACTIVATE(mpu_9250_sensor);
+}
+/*---------------------------------------------------------------------------*/
+/* PROCESSES */
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(transient_app_process, ev, data) {
   static batteryless_system_state_t system_state_old;
   static batteryless_system_state_t system_state;
   static batteryless_data_unit_t data_buffer;
   static uint8_t ble_payload[BLE_ADV_MAX_SIZE];
   static uint32_t timestamp;
+  static int accel[3];
+  static uint16_t light;
   // static int temperature;
   // static int humidity;
   // static bool ret;
@@ -154,6 +240,24 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   // //read ambient sensor values
   // temperature = sht3x_sensor.value(SHT3X_TYPE_TEMPERATURE);
   // humidity = sht3x_sensor.value(SHT3X_TYPE_HUMIDITY);
+  
+  // bool mpu_done=false, opt_done=false;
+  // while( (mpu_done==false) && (opt_done==false)) {
+  //   PROCESS_YIELD_UNTIL((ev == sensors_event));
+  //   if(data == &opt_3001_sensor) {
+  //     // get_light_reading(&light);
+  //     opt_done=true;
+  //   }
+  //   else if(data == &mpu_9250_sensor) {
+  //     // get_mpu_reading(accel);
+  //     mpu_done=true;
+  //   }
+  // }
+  clock_delay(1000);
+  printf("Received both sensor signals\n");
+  get_mpu_reading(accel);
+  get_light_reading(&light);
+
   timestamp = clock_time();
 
   // print read sensor values
