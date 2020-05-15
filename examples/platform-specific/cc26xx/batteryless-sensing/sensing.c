@@ -245,8 +245,8 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   rf_ble_beacond_start();
 
   etimer_set(&et, CC26XX_DEMO_LOOP_INTERVAL);
-  get_sync_sensor_readings();
-  init_sensor_readings();
+  // get_sync_sensor_readings();
+  // init_sensor_readings();
 
   while(1) {
 
