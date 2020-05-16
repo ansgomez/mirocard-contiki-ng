@@ -50,7 +50,7 @@
 #include <stdio.h>
 #include <math.h>
 /*---------------------------------------------------------------------------*/
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -147,17 +147,15 @@ notify_ready(void *not_used)
    * if the reading is ready we notify, otherwise we just reschedule ourselves
    */
   uint16_t val;
-  printf("Notified to be ready\n");
+
   select_on_bus();
 
   sensor_common_read_reg(REG_CONFIGURATION, (uint8_t *)&val, REGISTER_LENGTH);
 
   if(val & CONFIG_CRF) {
-    printf("OPT Data is now ready\n");
     sensors_changed(&opt_3001_sensor);
     state = SENSOR_STATE_DATA_READY;
   } else {
-    printf("OPT Data is not yet ready\n");
     ctimer_set(&startup_timer, SENSOR_STARTUP_DELAY, notify_ready, NULL);
   }
 }
@@ -176,7 +174,7 @@ enable_sensor(bool enable)
 
   if(enable) {
     val = CONFIG_ENABLE_SINGLE_SHOT;
-      printf("OPT Sensor is now active2\n");
+
     /* Writing CONFIG_ENABLE_SINGLE_SHOT to M bits will clear CRF bits */
     state = SENSOR_STATE_ACTIVE;
   } else {
@@ -251,15 +249,11 @@ value(int type)
   uint16_t raw_val;
   float converted_val;
 
-  printf("Going to read opt sensor\n");
-
   rv = read_data(&raw_val);
 
   if(rv == false) {
     return CC26XX_SENSOR_READING_ERROR;
   }
-
-  printf("Able to read opt sensor!!\n");
 
   converted_val = convert(raw_val);
   PRINTF("OPT: %04X            r=%d (centilux)\n", raw_val,
@@ -284,7 +278,7 @@ static int
 configure(int type, int enable)
 {
   int rv = 0;
-  printf("OPT Sensor trying to get configured\n");
+
   switch(type) {
   case SENSORS_HW_INIT:
     /*
@@ -297,7 +291,6 @@ configure(int type, int enable)
   case SENSORS_ACTIVE:
     if(enable) {
       enable_sensor(1);
-      printf("OPT Sensor is now active\n");
       ctimer_set(&startup_timer, SENSOR_STARTUP_DELAY, notify_ready, NULL);
       rv = 1;
     } else {
