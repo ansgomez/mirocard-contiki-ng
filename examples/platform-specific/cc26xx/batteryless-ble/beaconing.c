@@ -38,7 +38,9 @@
 #include "lpm.h"
 #include "ti-lib.h"
 #include "rf-core/rf-ble.h"
+#include "board.h"
 #include "board-peripherals.h"
+#include "batmon-sensor.h"
 #include "lib/sensors.h"
 
 #include "data.h"
@@ -151,6 +153,22 @@ get_mpu_reading(int value[3])
   SENSORS_DEACTIVATE(mpu_9250_sensor);
 }
 /*---------------------------------------------------------------------------*/
+static void
+get_sync_sensor_readings(void)
+{
+  int value;
+
+  printf("-----------------------------------------\n");
+
+  value = batmon_sensor.value(BATMON_SENSOR_TYPE_TEMP);
+  printf("Bat: Temp=%d C\n", value);
+
+  value = batmon_sensor.value(BATMON_SENSOR_TYPE_VOLT);
+  printf("Bat: Volt=%d mV\n", (value * 125) >> 5);
+
+  return;
+}
+/*---------------------------------------------------------------------------*/
 /* PROCESSES */
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(transient_app_process, ev, data) {
@@ -232,7 +250,9 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   ti_lib_gpio_clear_dio(BOARD_IOID_GPIO_2);
   /*-------------------------------------------------------------------------*/
   /* Sensor readout */
-
+  SENSORS_ACTIVATE(batmon_sensor);
+  get_sync_sensor_readings();
+  init_sensor_readings();
 
   //TODO: Update sensor readings
   // //configure SHT3x sensor
