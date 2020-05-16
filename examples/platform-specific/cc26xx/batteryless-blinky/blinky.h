@@ -48,10 +48,10 @@
 #define BLE_RF_TX_POWER                     -21
 /*---------------------------------------------------------------------------*/
 /**
- * GPIO used as as wakeup trigger (EMU_TRIG or LED_GPIO for testing)
+ * GPIO used as as wakeup trigger (EMU_TRIG or USER_BUTTON for testing)
  */
 #define WAKEUP_TRIGGER_IOID                 BOARD_IOID_EMU_COMP
-// #define WAKEUP_TRIGGER_IOID                 BOARD_IOID_LED_1
+// #define WAKEUP_TRIGGER_IOID                 BOARD_IOID_KEY_USER
 /**
  * GPIO trigger edge (IOC_WAKE_ON_HIGH or IOC_WAKE_ON_LOW for parallel testing)
  */
