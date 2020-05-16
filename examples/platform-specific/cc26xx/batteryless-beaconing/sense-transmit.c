@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2020, Miromico AG
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,6 +78,7 @@
  *     Example demonstrating the cc26xx platforms
  */
 #include "contiki.h"
+#include "lpm.h"
 #include "sys/etimer.h"
 #include "sys/ctimer.h"
 #include "dev/leds.h"
@@ -106,12 +108,26 @@
 #else
 #define PRINTF(...)
 #endif
+
+#define MPU_SENSOR_TYPE MPU_9250_SENSOR_TYPE_ACC
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
 
 static uint32_t timestamp;
 static int accel[3];
 static uint16_t light;
+/* ------------------------------------------------------------------------- */
+/**
+ * Set peripherals to sleep, configure EMU and enter deep sleep.
+ * @note This function enters deep sleep and does NOT return.
+ * @param emu_energy EMU energy burst size for wakeup
+ * @param emu_voltage Voltage level for next EMU energy burst
+ */
+static inline void batteryless_shutdown() {
+
+  // LPM with GPIO triggered wakeup
+  lpm_shutdown(WAKEUP_TRIGGER_IOID, IOC_NO_IOPULL, WAKEUP_TRIGGER_EDGE);
+}
 /*---------------------------------------------------------------------------*/
 PROCESS(batteryless_process, "cc26xx demo process");
 AUTOSTART_PROCESSES(&batteryless_process);
@@ -149,6 +165,8 @@ get_mpu_reading()
 {
   int value;
 
+#if MPU_SENSOR_TYPE != MPU_9250_SENSOR_TYPE_ACC
+//TODO: Creat Gyro Field in BLE Beacon
   printf("MPU Gyro: X=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_X);
   print_mpu_reading(value);
@@ -163,7 +181,9 @@ get_mpu_reading()
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Z);
   print_mpu_reading(value);
   printf(" deg/sec\n");
+#endif
 
+#if MPU_SENSOR_TYPE == MPU_9250_SENSOR_TYPE_ACC
   printf("MPU Acc: X=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_X);
   print_mpu_reading(value);
@@ -181,6 +201,7 @@ get_mpu_reading()
   print_mpu_reading(value);
   printf(" G\n");
   accel[2] = value;
+#endif
 
   SENSORS_DEACTIVATE(mpu_9250_sensor);
 }
@@ -194,7 +215,7 @@ init_opt_reading(void *not_used)
 static void
 init_mpu_reading(void *not_used)
 {
-  mpu_9250_sensor.configure(SENSORS_ACTIVE, MPU_9250_SENSOR_TYPE_ALL);
+  mpu_9250_sensor.configure(SENSORS_ACTIVE, MPU_SENSOR_TYPE);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -335,6 +356,16 @@ PROCESS_THREAD(batteryless_process, ev, data)
 
   // transmit BLE beacon
   rf_ble_beacon_single(BLE_ADV_CHANNEL_ALL, ble_payload, ble_payload_size);
+
+  /*-------------------------------------------------------------------------*/
+  // GPIO CONFIG 2+3+4
+  ti_lib_gpio_set_dio(BOARD_IOID_GPIO_3);
+  /*-------------------------------------------------------------------------*/
+  /* cleanup and prepare shutdown */
+
+  /* shutdown system for sleep */
+  batteryless_shutdown();
+  /*-------------------------------------------------------------------------*/
 
   PROCESS_END();
 }
