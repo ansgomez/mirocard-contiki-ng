@@ -97,20 +97,6 @@
 #include <stdio.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
-#define CC26XX_DEMO_LOOP_INTERVAL       (CLOCK_SECOND * 20)
-#define CC26XX_DEMO_LEDS_PERIODIC       LEDS_YELLOW
-#define CC26XX_DEMO_LEDS_BUTTON         LEDS_BLUE
-#define CC26XX_DEMO_LEDS_REBOOT         LEDS_ALL
-/*---------------------------------------------------------------------------*/
-#if BOARD_BATTERYLESS || BOARD_TRANSIENT
-#define CC26XX_DEMO_TRIGGER_1     BOARD_BUTTON_HAL_INDEX_KEY_USER
-#define CC26XX_DEMO_TRIGGER_2     BOARD_BUTTON_HAL_INDEX_KEY_USER
-#else
-#define CC26XX_DEMO_TRIGGER_1     BOARD_BUTTON_HAL_INDEX_KEY_LEFT
-#define CC26XX_DEMO_TRIGGER_2     BOARD_BUTTON_HAL_INDEX_KEY_RIGHT
-#endif
-
-/*---------------------------------------------------------------------------*/
 #define DEBUG 1
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -120,22 +106,11 @@
 #else
 #define PRINTF(...)
 #endif
-/* ------------------------------------------------------------------------- */
-
-
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
 /*---------------------------------------------------------------------------*/
-PROCESS(cc26xx_demo_process, "cc26xx demo process");
-AUTOSTART_PROCESSES(&cc26xx_demo_process);
-/*---------------------------------------------------------------------------*/
-/*
- * Update sensor readings in a staggered fashion every SENSOR_READING_PERIOD
- * ticks + a random interval between 0 and SENSOR_READING_RANDOM ticks
- */
-#define SENSOR_READING_PERIOD (CLOCK_SECOND * 20)
-#define SENSOR_READING_RANDOM (CLOCK_SECOND << 4)
-
+PROCESS(batteryless_process, "cc26xx demo process");
+AUTOSTART_PROCESSES(&batteryless_process);
 /*---------------------------------------------------------------------------*/
 static void init_opt_reading(void *not_used);
 static void init_mpu_reading(void *not_used);
@@ -155,8 +130,6 @@ static void
 get_light_reading()
 {
   int value;
-  clock_time_t next = SENSOR_READING_PERIOD +
-    (random_rand() % SENSOR_READING_RANDOM);
 
   value = opt_3001_sensor.value(0);
   if(value != CC26XX_SENSOR_READING_ERROR) {
@@ -170,8 +143,6 @@ static void
 get_mpu_reading()
 {
   int value;
-  clock_time_t next = SENSOR_READING_PERIOD +
-    (random_rand() % SENSOR_READING_RANDOM);
 
   printf("MPU Gyro: X=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_X);
@@ -247,7 +218,7 @@ init_sensor_readings(void)
   init_mpu_reading(NULL);
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(cc26xx_demo_process, ev, data)
+PROCESS_THREAD(batteryless_process, ev, data)
 {
   static int count =0;
   static batteryless_system_state_t system_state_old;
@@ -290,12 +261,9 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   // GPIO CONFIG 1+2
   // ti_lib_gpio_set_dio(BOARD_IOID_GPIO_2);
   /*-------------------------------------------------------------------------*/
-
-
   printf("Triggering new sensor reading\n");
   // get_sync_sensor_readings();
   init_sensor_readings();
-
   count=0;
   while(count<2) {
     PROCESS_YIELD_UNTIL((ev == sensors_event));
@@ -307,30 +275,24 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
       count++;
     }
   }
-
   printf("Finished reading all sensors\n");
-
   /*-------------------------------------------------------------------------*/
   // GPIO CONFIG 3
   // ti_lib_gpio_clear_dio(BOARD_IOID_GPIO_1);
   /*-------------------------------------------------------------------------*/
-
-
   /* assemble data packet */
   data_buffer.time = timestamp;
-  data_buffer.data[0] = 0xAB;
-  data_buffer.data[1] = 0xCD;
-  data_buffer.data[2] = 0xEF;
-   
+  data_buffer.accel[0] = accel[0];
+  data_buffer.accel[1] = accel[1];
+  data_buffer.accel[2] = accel[2];
+  data_buffer.light = light;
 #if DEBUG
   PRINTF("sample:  ");
-  for (uint16_t i = 0; i < BATTERYLESS_DATA_UNIT_SIZE; i++) {
+  for (uint8_t i = 0; i < BATTERYLESS_DATA_UNIT_SIZE; i++) {
     PRINTF("%5u ", data_buffer.bytes[i]);
   }
   PRINTF("\n");
 #endif
-
-
   /*
    * Assemble manufacturer specific BLE beacon payload, see README.md for
    * detailed definition of the BLE packet structure.

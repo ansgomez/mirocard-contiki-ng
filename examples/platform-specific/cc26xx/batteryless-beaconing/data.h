@@ -48,32 +48,19 @@ typedef struct batteryless_data_state {
   uint16_t average_count;
 } batteryless_data_state_t;
 /*---------------------------------------------------------------------------*/
-typedef union batteryless_data_unit {
-  struct {
-    uint32_t time;
-    uint8_t data[3];
-  };
-  uint8_t bytes[7];
-} batteryless_data_unit_t CC_ALIGN (4);
-/*---------------------------------------------------------------------------*/
 /**
  * Actual size of the unaligned transient data unit structure
  */
-#define BATTERYLESS_DATA_UNIT_SIZE    7
-/**
- * Buffer index of the temperature data
- */
-#define DATA_TEMPERATURE_INDEX      0
-/**
- * Buffer index of the humidity data
- */
-#define DATA_HUMIDITY_INDEX         1
-/**
- * Timeout for average building [in seconds]
- */
-#define DATA_AVERAGE_TIMEOUT        360
+#define BATTERYLESS_DATA_UNIT_SIZE    18
 /*---------------------------------------------------------------------------*/
-
+typedef union batteryless_data_unit {
+  struct {
+    uint32_t time;
+    int accel[3];
+    uint16_t light;
+  };
+  uint8_t bytes[BATTERYLESS_DATA_UNIT_SIZE];
+} batteryless_data_unit_t CC_ALIGN (4);
 /*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
