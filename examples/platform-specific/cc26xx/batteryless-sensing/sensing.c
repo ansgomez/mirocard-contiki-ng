@@ -236,6 +236,26 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   static int count =0;
   PROCESS_BEGIN();
 
+  printf("Reset source: 0x%x\n", (uint8_t)ti_lib_sys_ctrl_reset_source_get());
+
+  // // if not triggered by GPIO or emulated, cold start init for sleep only
+  // if (system_state.reset_source != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
+  //   /*-----------------------------------------------------------------------*/
+  //   PRINTF("Going to sleep waiting for trigger\n");
+  //   // GPIO CONFIG 1-a
+  //   ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
+  //   /*-----------------------------------------------------------------------*/
+  //   /* cold start init for sleep only */
+  //   batteryless_shutdown();
+  //   /*-----------------------------------------------------------------------*/
+  // } else {
+  //   /* wakeup from LPM on GPIO trigger, do initialize for execution */
+  //   PRINTF("Woken up to perform a task\n");
+  //   // reset default system state and task id
+  //   system_state.status = 0x00;
+  //   system_state.task_id = 0;
+  // }
+
   printf("Triggering new sensor reading\n");
   // get_sync_sensor_readings();
   init_sensor_readings();
@@ -254,7 +274,7 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
 
   printf("Finished reading all sensors\n");
 
-
+  batteryless_shutdown();
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
