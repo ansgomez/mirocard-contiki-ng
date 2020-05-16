@@ -178,6 +178,22 @@ platform_init_stage_one()
 #if CC26XX_LED_CONF_ENABLE
   fade(LEDS_YELLOW);
 #endif
+
+//TODO: Only for Miromico Tag
+#pragma message("Application will run *only* with EMU Signal")
+  // if not triggered by GPIO or emulated, cold start init for sleep only
+  if (((uint8_t)ti_lib_sys_ctrl_reset_source_get()) != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
+    /*-----------------------------------------------------------------------*/
+    // GPIO CONFIG 1-a
+    ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
+    /*-----------------------------------------------------------------------*/
+    /* cold start init for sleep only */
+    // LPM with GPIO triggered wakeup
+    //TODO: Create _CONF paramaters
+    lpm_shutdown(BOARD_IOID_EMU_COMP, IOC_NO_IOPULL, IOC_WAKE_ON_HIGH);
+    // lpm_shutdown(BOARD_IOID_KEY_USER, IOC_NO_IOPULL, IOC_WAKE_ON_LOW);
+    /*-----------------------------------------------------------------------*/
+  } 
 }
 /*---------------------------------------------------------------------------*/
 void
