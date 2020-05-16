@@ -236,63 +236,24 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   static int count =0;
   PROCESS_BEGIN();
 
-  printf("CC26XX demo\n");
-
-  init_sensors();
-
-  /* Init the BLE advertisement daemon */
-  rf_ble_beacond_config(0, BOARD_STRING);
-  rf_ble_beacond_start();
-
-  etimer_set(&et, CC26XX_DEMO_LOOP_INTERVAL);
+  printf("Triggering new sensor reading\n");
   // get_sync_sensor_readings();
-  // init_sensor_readings();
+  init_sensor_readings();
 
-  while(1) {
-
-    printf("Triggering new sensor reading\n");
-    get_sync_sensor_readings();
-    init_sensor_readings();
-
-    count=0;
-    while(count<2) {
-      PROCESS_YIELD_UNTIL((ev == sensors_event));
-      if(data == &opt_3001_sensor) {
-        get_light_reading();
-        count++;
-      } else if(data == &mpu_9250_sensor) {
-        get_mpu_reading();
-        count++;
-      }
+  count=0;
+  while(count<2) {
+    PROCESS_YIELD_UNTIL((ev == sensors_event));
+    if(data == &opt_3001_sensor) {
+      get_light_reading();
+      count++;
+    } else if(data == &mpu_9250_sensor) {
+      get_mpu_reading();
+      count++;
     }
-
-    printf("Finished reading all sensors\n");
-
-    PROCESS_YIELD();
-
-    if(ev == PROCESS_EVENT_TIMER) {
-      if(data == &et) {
-        leds_toggle(CC26XX_DEMO_LEDS_PERIODIC);
-        etimer_set(&et, CC26XX_DEMO_LOOP_INTERVAL);
-      }
-    }
-    else if(ev == button_hal_release_event) {
-      button_hal_button_t *btn = (button_hal_button_t *)data;
-
-      printf("%s release event\n", BUTTON_HAL_GET_DESCRIPTION(btn));
-
-      if(btn->unique_id== CC26XX_DEMO_TRIGGER_1) {
-
-        leds_toggle(CC26XX_DEMO_LEDS_BUTTON);
-
- 
-      } else if(btn->unique_id == CC26XX_DEMO_TRIGGER_2) {
-        leds_on(CC26XX_DEMO_LEDS_REBOOT);
-        watchdog_reboot();
-      } 
-    } 
-
   }
+
+  printf("Finished reading all sensors\n");
+
 
   PROCESS_END();
 }
