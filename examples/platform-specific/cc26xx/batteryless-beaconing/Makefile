@@ -1,0 +1,18 @@
+CONTIKI ?= ../../../../
+CONTIKI_PROJECT = sense-transmit
+
+TARGET=cc26x0-cc13x0
+BOARD=miromico-batteryless/cc2650
+CFLAGS += -g
+
+CONTIKI_SOURCEFILES += data.c
+
+MAKE_MAC = MAKE_MAC_NULLMAC
+MAKE_NET = MAKE_NET_NULLNET
+MAKE_ROUTING = MAKE_ROUTING_NULLROUTING
+
+PLATFORMS_ONLY = cc26x0-cc13x0
+
+all: $(CONTIKI_PROJECT)
+
+include $(CONTIKI)/Makefile.include
