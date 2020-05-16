@@ -108,6 +108,10 @@
 #endif
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
+
+static uint32_t timestamp;
+static int accel[3];
+static uint16_t light;
 /*---------------------------------------------------------------------------*/
 PROCESS(batteryless_process, "cc26xx demo process");
 AUTOSTART_PROCESSES(&batteryless_process);
@@ -137,6 +141,7 @@ get_light_reading()
   } else {
     printf("OPT: Light Read Error\n");
   }
+  light = value;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -163,16 +168,19 @@ get_mpu_reading()
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_X);
   print_mpu_reading(value);
   printf(" G\n");
+  accel[0] = value;
 
   printf("MPU Acc: Y=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Y);
   print_mpu_reading(value);
   printf(" G\n");
+  accel[1] = value;
 
   printf("MPU Acc: Z=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Z);
   print_mpu_reading(value);
   printf(" G\n");
+  accel[2] = value;
 
   SENSORS_DEACTIVATE(mpu_9250_sensor);
 }
@@ -225,9 +233,6 @@ PROCESS_THREAD(batteryless_process, ev, data)
   static batteryless_system_state_t system_state;
   static batteryless_data_unit_t data_buffer;
   static uint8_t ble_payload[BLE_ADV_MAX_SIZE];
-  static uint32_t timestamp;
-  static int accel[3];
-  static uint16_t light;
   // static int temperature;
   // static int humidity;
   // static bool ret;
@@ -289,7 +294,7 @@ PROCESS_THREAD(batteryless_process, ev, data)
 #if DEBUG
   PRINTF("sample:  ");
   for (uint8_t i = 0; i < BATTERYLESS_DATA_UNIT_SIZE; i++) {
-    PRINTF("%5u ", data_buffer.bytes[i]);
+    PRINTF("%02x ", data_buffer.bytes[i]);
   }
   PRINTF("\n");
 #endif
@@ -300,13 +305,11 @@ PROCESS_THREAD(batteryless_process, ev, data)
   uint8_t ble_payload_size = 1; // setting payload size field at the end
   ble_payload[ble_payload_size++] = BLE_ADV_TYPE_MANUFACTURER;
   ble_payload[ble_payload_size++] = BLE_ADV_TYPE_MANUFACTURER; //system_state.status;
-  // add data units up to full packet size
-  while (ble_payload_size + BATTERYLESS_DATA_UNIT_SIZE <= BLE_ADV_MAX_SIZE ) {
-    uint8_t* data_bytes = (uint8_t*)&data_buffer;
-    for (uint8_t i = 0; i < BATTERYLESS_DATA_UNIT_SIZE; i++) {
-      ble_payload[ble_payload_size++] = data_bytes[i];
-    }
+  // TODO: add data units up to full packet size
+  for (uint8_t i = 0; i < BATTERYLESS_DATA_UNIT_SIZE; i++) {
+    ble_payload[ble_payload_size++] =  data_buffer.bytes[i];
   }
+
   // update payload size field (data length byte not counted)
   ble_payload[0] = ble_payload_size - 1;
 
