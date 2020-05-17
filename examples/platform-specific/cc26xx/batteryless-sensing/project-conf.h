@@ -31,13 +31,36 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
-/* Enable the ROM bootloader */
-#define CCXXWARE_CONF_ROM_BOOTLOADER_ENABLE   1
+/* Disable button shutdown functionality */
+#define BUTTON_SENSOR_CONF_ENABLE_SHUTDOWN  0
 /*---------------------------------------------------------------------------*/
-/* Change to match your configuration */
-#define IEEE802154_CONF_PANID            0xABCD
-#define IEEE802154_CONF_DEFAULT_CHANNEL      25
-#define RF_BLE_CONF_ENABLED                   1
+/* Enable/Disable UART and system LED I/O */
+#define CC26XX_UART_CONF_ENABLE             1
+#define CC26XX_LED_CONF_ENABLE              0
+/*---------------------------------------------------------------------------*/
+/* Internal RCOSC as LF clock sufficient and initialized much faster */
+#define CC26XX_CLOCK_CONF_USE_LF_RCOSC      1
+/*---------------------------------------------------------------------------*/
+/* Enable the ROM bootloader */
+#define ROM_BOOTLOADER_ENABLE               1
+/*---------------------------------------------------------------------------*/
+/* Radio configuration: only BLE on demand */
+// #define NETSTACK_CONF_RADIO                 nullradio_driver
+#define RF_BLE_CONF_ENABLED                 1
+/*---------------------------------------------------------------------------*/
+/* Logging configuration of system components */
+#define LOG_CONF_LEVEL_RPL                  LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_TCPIP                LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_IPV6                 LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_6LOWPAN              LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_NULLNET              LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_MAC                  LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_FRAMER               LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_6TOP                 LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_COAP                 LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_LWM2M                LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_MAIN                 LOG_LEVEL_NONE
+/*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 #endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/
