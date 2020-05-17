@@ -167,40 +167,64 @@ get_mpu_reading()
 
 #if MPU_SENSOR_TYPE != MPU_9250_SENSOR_TYPE_ACC
 //TODO: Creat Gyro Field in BLE Beacon
-  printf("MPU Gyro: X=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_X);
-  print_mpu_reading(value);
-  printf(" deg/sec\n");
+  if(value != CC26XX_SENSOR_READING_ERROR) {
+    printf("MPU Gyro: X=");
+    print_mpu_reading(value);
+    printf(" deg/sec\n");
+  } else {
+    printf("Error Reading MPU Gyro X\n");
+  }
 
-  printf("MPU Gyro: Y=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Y);
-  print_mpu_reading(value);
-  printf(" deg/sec\n");
+  if(value != CC26XX_SENSOR_READING_ERROR) {
+    printf("MPU Gyro: Y=");
+    print_mpu_reading(value);
+    printf(" deg/sec\n");
+  } else {
+    printf("Error Reading MPU Gyro Y\n");
+  }
 
-  printf("MPU Gyro: Z=");
-  value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Z);
-  print_mpu_reading(value);
-  printf(" deg/sec\n");
+    value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Z);
+  if(value != CC26XX_SENSOR_READING_ERROR) {
+    printf("MPU Gyro: Z=");
+    print_mpu_reading(value);
+    printf(" deg/sec\n");
+  } else {
+    printf("Error Reading MPU Gyro Z\n");
+  }
 #endif
 
 #if MPU_SENSOR_TYPE == MPU_9250_SENSOR_TYPE_ACC
-  printf("MPU Acc: X=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_X);
-  print_mpu_reading(value);
-  printf(" G\n");
-  accel[0] = value;
+  if(value != CC26XX_SENSOR_READING_ERROR) {
+    printf("MPU Acc: X=");
+    print_mpu_reading(value);
+    printf(" G\n");
+    accel[0] = value;
+  } else {
+    printf("Error Reading MPU Acc X\n");
+  }
 
-  printf("MPU Acc: Y=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Y);
-  print_mpu_reading(value);
-  printf(" G\n");
-  accel[1] = value;
+  if(value != CC26XX_SENSOR_READING_ERROR) {
+    printf("MPU Acc: Y=");
+    print_mpu_reading(value);
+    printf(" G\n");
+    accel[1] = value;
+  } else {
+    printf("Error Reading MPU Acc Y\n");
+  }
 
-  printf("MPU Acc: Z=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Z);
-  print_mpu_reading(value);
-  printf(" G\n");
-  accel[2] = value;
+  if(value != CC26XX_SENSOR_READING_ERROR) {
+    printf("MPU Acc: Z=");
+    print_mpu_reading(value);
+    printf(" G\n");
+    accel[2] = value;
+  } else {
+    printf("Error Reading MPU Acc Z\n");
+  }
 #endif
 
   SENSORS_DEACTIVATE(mpu_9250_sensor);
@@ -363,6 +387,7 @@ PROCESS_THREAD(batteryless_process, ev, data)
   /*-------------------------------------------------------------------------*/
   /* cleanup and prepare shutdown */
 
+  PRINTF("Shutting down\n");
   /* shutdown system for sleep */
   batteryless_shutdown();
   /*-------------------------------------------------------------------------*/
