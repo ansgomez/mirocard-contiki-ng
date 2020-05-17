@@ -240,6 +240,7 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   /*-------------------------------------------------------------------------*/
   /* cleanup and prepare shutdown */
 
+  PRINTF("Shutting down\n");
   /* shutdown system for sleep */
   batteryless_shutdown();
   /*-------------------------------------------------------------------------*/
