@@ -157,10 +157,6 @@ platform_init_stage_one()
 
   gpio_hal_init();
 
-  leds_init();
-#if CC26XX_LED_CONF_ENABLE
-  fade(LEDS_RED);
-#endif
   /*
    * Disable I/O pad sleep mode and open I/O latches in the AON IOC interface
    * This is only relevant when returning from shutdown (which is what froze
@@ -194,6 +190,11 @@ platform_init_stage_one()
     // lpm_shutdown(BOARD_IOID_KEY_USER, IOC_NO_IOPULL, IOC_WAKE_ON_LOW);
     /*-----------------------------------------------------------------------*/
   } 
+
+  leds_init();
+#if CC26XX_LED_CONF_ENABLE
+  fade(LEDS_RED);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
