@@ -45,7 +45,7 @@
 #define ROM_BOOTLOADER_ENABLE               1
 /*---------------------------------------------------------------------------*/
 /* Radio configuration: only BLE on demand */
-// #define NETSTACK_CONF_RADIO                 nullradio_driver
+#define NETSTACK_CONF_RADIO                 nullradio_driver
 #define RF_BLE_CONF_ENABLED                 1
 /*---------------------------------------------------------------------------*/
 /* Logging configuration of system components */
@@ -59,7 +59,7 @@
 #define LOG_CONF_LEVEL_6TOP                 LOG_LEVEL_NONE
 #define LOG_CONF_LEVEL_COAP                 LOG_LEVEL_NONE
 #define LOG_CONF_LEVEL_LWM2M                LOG_LEVEL_NONE
-#define LOG_CONF_LEVEL_MAIN                 LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_MAIN                 LOG_LEVEL_DBG
 /*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 #endif /* PROJECT_CONF_H_ */
