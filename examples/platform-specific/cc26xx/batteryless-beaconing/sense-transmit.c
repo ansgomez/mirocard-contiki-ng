@@ -268,7 +268,7 @@ static void
 init_sensor_readings(void)
 {
   SENSORS_ACTIVATE(opt_3001_sensor);
-  init_mpu_reading(NULL);
+  // init_mpu_reading(NULL);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(batteryless_process, ev, data)
@@ -315,15 +315,16 @@ PROCESS_THREAD(batteryless_process, ev, data)
   // get_sync_sensor_readings();
   init_sensor_readings();
   count=0;
-  while(count<2) {
+  while(count<1) {
     PROCESS_YIELD_UNTIL((ev == sensors_event));
     if(data == &opt_3001_sensor) {
       get_light_reading();
       count++;
-    } else if(data == &mpu_9250_sensor) {
-      get_mpu_reading();
-      count++;
-    }
+    } 
+    // else if(data == &mpu_9250_sensor) {
+    //   get_mpu_reading();
+    //   count++;
+    // }
   }
   printf("Finished reading all sensors\n");
   /*-------------------------------------------------------------------------*/
