@@ -157,35 +157,59 @@ get_mpu_reading()
   clock_time_t next = SENSOR_READING_PERIOD +
     (random_rand() % SENSOR_READING_RANDOM);
 
-  printf("MPU Gyro: X=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_X);
-  print_mpu_reading(value);
-  printf(" deg/sec\n");
+  if(value != CC26XX_SENSOR_READING_ERROR) {
+    printf("MPU Gyro: X=");
+    print_mpu_reading(value);
+    printf(" deg/sec\n");
+  } else {
+    printf("Error Reading MPU Gyro X\n");
+  }
 
-  printf("MPU Gyro: Y=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Y);
-  print_mpu_reading(value);
-  printf(" deg/sec\n");
+  if(value != CC26XX_SENSOR_READING_ERROR) {
+    printf("MPU Gyro: Y=");
+    print_mpu_reading(value);
+    printf(" deg/sec\n");
+  } else {
+    printf("Error Reading MPU Gyro Y\n");
+  }
 
-  printf("MPU Gyro: Z=");
-  value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Z);
-  print_mpu_reading(value);
-  printf(" deg/sec\n");
+    value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Z);
+  if(value != CC26XX_SENSOR_READING_ERROR) {
+    printf("MPU Gyro: Z=");
+    print_mpu_reading(value);
+    printf(" deg/sec\n");
+  } else {
+    printf("Error Reading MPU Gyro Z\n");
+  }
 
-  printf("MPU Acc: X=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_X);
-  print_mpu_reading(value);
-  printf(" G\n");
+  if(value != CC26XX_SENSOR_READING_ERROR) {
+    printf("MPU Acc: X=");
+    print_mpu_reading(value);
+    printf(" G\n");
+  } else {
+    printf("Error Reading MPU Acc X\n");
+  }
 
-  printf("MPU Acc: Y=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Y);
-  print_mpu_reading(value);
-  printf(" G\n");
+  if(value != CC26XX_SENSOR_READING_ERROR) {
+    printf("MPU Acc: Y=");
+    print_mpu_reading(value);
+    printf(" G\n");
+  } else {
+    printf("Error Reading MPU Acc Y\n");
+  }
 
-  printf("MPU Acc: Z=");
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Z);
-  print_mpu_reading(value);
-  printf(" G\n");
+  if(value != CC26XX_SENSOR_READING_ERROR) {
+    printf("MPU Acc: Z=");
+    print_mpu_reading(value);
+    printf(" G\n");
+  } else {
+    printf("Error Reading MPU Acc Z\n");
+  }
 
   SENSORS_DEACTIVATE(mpu_9250_sensor);
 }
@@ -271,10 +295,10 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
       count++;
     }
   }
-
-  printf("Finished reading all sensors\n");
-
-  batteryless_shutdown();
+  /*---------------------------------------------------------------------------*/
+  // printf("Finished reading all sensors\n");
+  // batteryless_shutdown();
+  /*---------------------------------------------------------------------------*/
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
