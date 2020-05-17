@@ -1,6 +1,6 @@
 CONTIKI ?= ../../../../
 
-CONTIKI_PROJECT = beaconing
+CONTIKI_PROJECT = transmit
 
 TARGET=cc26x0-cc13x0
 BOARD=miromico-batteryless/cc2650

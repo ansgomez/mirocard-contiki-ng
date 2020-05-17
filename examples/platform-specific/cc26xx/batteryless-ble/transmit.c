@@ -45,7 +45,7 @@
 
 #include "data.h"
 
-#include "beaconing.h"
+#include "transmit.h"
 /*---------------------------------------------------------------------------*/
 #define DEBUG 1
 #if DEBUG
