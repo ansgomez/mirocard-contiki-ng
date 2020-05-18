@@ -52,13 +52,29 @@
 static void
 board_gpio_shutdown(void)
 {
+  //SENSORS 
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_MPU_INT);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_MPU_INT, IOC_NO_IOPULL);
+  //TODO: Hall Sensor
+  ti_lib_ioc_pin_type_gpio_input(IOID_21);
+  ti_lib_ioc_io_port_pull_set(IOID_21, IOC_NO_IOPULL);
+
+  //EMU
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_EMU_STATUS);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_EMU_STATUS, IOC_NO_IOPULL);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_EMU_COMP);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_EMU_COMP, IOC_NO_IOPULL);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_EMU_VBUF);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_EMU_VBUF, IOC_NO_IOPULL);
+
   /* configure communication interface pin states for shutdown */
   // I2C bus pin configuration for shutdown
+  //I2C1
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C_SCL);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C_SCL, IOC_IOPULL_UP);
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C_SDA);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C_SDA, IOC_IOPULL_UP);
-
+  
   // UART pin configuration for shutdown
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_UART_RX);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_UART_RX, IOC_IOPULL_DOWN);
@@ -74,6 +90,14 @@ board_gpio_shutdown(void)
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_GPIO_3, IOC_IOPULL_DOWN);
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_GPIO_4);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_GPIO_4, IOC_IOPULL_DOWN);
+
+  //LEDS: 
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_LED_1);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_LED_1, IOC_IOPULL_UP);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_LED_2);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_LED_2, IOC_IOPULL_UP);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_LED_3);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_LED_3, IOC_IOPULL_UP);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -94,6 +118,7 @@ shutdown_handler(uint8_t mode)
   if(mode == LPM_MODE_SHUTDOWN) {
     SENSORS_DEACTIVATE(opt_3001_sensor);
     SENSORS_DEACTIVATE(mpu_9250_sensor);
+    ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_MPU_POWER);
     ti_lib_gpio_clear_dio(BOARD_IOID_MPU_POWER);
   }
 

@@ -202,6 +202,7 @@
 
 #define BOARD_UNUSED_PINS { \
     BOARD_IOID_TDO, BOARD_IOID_TDI, \
+    IOID_4, IOID_5, IOID_6, IOID_20, IOID_22, \
     IOID_UNUSED \
   }
 /** @} */
