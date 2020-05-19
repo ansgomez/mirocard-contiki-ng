@@ -119,7 +119,7 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define BOARD_IOID_EMU_STATUS       IOID_24
+#define BOARD_IOID_EMU_STATUS     IOID_24
 #define BOARD_IOID_EMU_COMP       IOID_25
 #define BOARD_IOID_EMU_VBUF       IOID_26
 /** @} */
