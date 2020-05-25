@@ -47,7 +47,7 @@
 
 #include "transmit.h"
 /*---------------------------------------------------------------------------*/
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #if !(CC26XX_UART_CONF_ENABLE)
@@ -199,12 +199,13 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   ble_payload[ble_payload_size++] = BLE_ADV_TYPE_MANUFACTURER;
   ble_payload[ble_payload_size++] = system_state.status;
   // add data units up to full packet size
-  while (ble_payload_size + BATTERYLESS_DATA_UNIT_SIZE <= BLE_ADV_MAX_SIZE ) {
+  // while (ble_payload_size + BATTERYLESS_DATA_UNIT_SIZE <= BLE_ADV_MAX_SIZE ) {
     uint8_t* data_bytes = (uint8_t*)&data_buffer;
     for (uint8_t i = 0; i < BATTERYLESS_DATA_UNIT_SIZE; i++) {
-      ble_payload[ble_payload_size++] = data_bytes[i];
+      // ble_payload[ble_payload_size++] = data_bytes[i];
+      ble_payload[ble_payload_size++] = i-6;
     }
-  }
+  // }
   // update payload size field (data length byte not counted)
   ble_payload[0] = ble_payload_size - 1;
 

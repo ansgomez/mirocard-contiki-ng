@@ -59,7 +59,7 @@ typedef union transient_data_unit {
 /**
  * Actual size of the unaligned transient data unit structure
  */
-#define BATTERYLESS_DATA_UNIT_SIZE    7
+#define BATTERYLESS_DATA_UNIT_SIZE    22
 /**
  * Buffer index of the temperature data
  */
