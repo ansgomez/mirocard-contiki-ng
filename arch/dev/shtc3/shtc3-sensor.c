@@ -110,31 +110,30 @@ enable_sensor(bool enable)
 static int
 configure(int type, int enable)
 {
-  return shtc3_init(NULL);
-  // int rv = 0;
+  int rv = 0;
 
-  // switch(type) {
-  // case SENSORS_HW_INIT:
-  //   /*
-  //    * Device reset won't reset the sensor, so we put it to sleep here
-  //    * explicitly
-  //    */
-  //   enable_sensor(0);
-  //   rv = 0;
-  //   break;
-  // case SENSORS_ACTIVE:
-  //   if(enable) {
-  //     enable_sensor(1);
-  //     rv = 1;
-  //   } else {
-  //     enable_sensor(0);
-  //     rv = 0;
-  //   }
-  //   break;
-  // default:
-  //   break;
-  // }
-  // return rv;
+  switch(type) {
+  case SENSORS_HW_INIT:
+    /*
+     * Device reset won't reset the sensor, so we put it to sleep here
+     * explicitly
+     */
+    enable_sensor(0);
+    rv = 0;
+    break;
+  case SENSORS_ACTIVE:
+    if(enable) {
+      enable_sensor(1);
+      rv = 1;
+    } else {
+      enable_sensor(0);
+      rv = 0;
+    }
+    break;
+  default:
+    break;
+  }
+  return rv;
 }
 /*---------------------------------------------------------------------------*/
 static int
