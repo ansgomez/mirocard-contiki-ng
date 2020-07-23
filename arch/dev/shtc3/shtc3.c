@@ -43,7 +43,7 @@
 /* Log configuration */
 #include "sys/log.h"
 #define LOG_MODULE                    "shtc3"
-#define LOG_LEVEL                     LOG_LEVEL_DBG
+#define LOG_LEVEL                     LOG_LEVEL_NONE
 /*---------------------------------------------------------------------------*/
 #ifndef SHTC3_I2C_CONTROLLER
 
