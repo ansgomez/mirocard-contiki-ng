@@ -156,6 +156,21 @@ shtc3_init(void *conf)
   return true;
 }
 /*---------------------------------------------------------------------------*/
+bool shtc3_wakeup(void *conf) {
+  // select device
+  select_on_bus(conf);
+
+  return shtc3_write(conf, SHTC3_CODE_WAKEUP);
+}
+/*---------------------------------------------------------------------------*/
+
+bool shtc3_sleep(void *conf) {
+  // select device
+  select_on_bus(conf);
+
+  return shtc3_write(conf, SHTC3_CODE_SLEEP);
+}
+/*---------------------------------------------------------------------------*/
 bool
 shtc3_read_values(void *conf, shtc3_repeatability_t repeatability,
                   uint16_t *temperature, uint16_t *humidity)

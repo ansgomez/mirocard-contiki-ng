@@ -74,6 +74,20 @@ int32_t shtc3_convert_humidity(uint16_t raw);
 bool shtc3_init(void *conf);
 
 /**
+ * \brief Wakes up the SHT3x sensor
+ * \param None
+ * \return Whether the operation succeeded
+ */
+bool shtc3_wakeup(void *conf);
+
+/**
+ * \brief Puts the SHT3x sensor in sleep mode
+ * \param None
+ * \return Whether the operation succeeded
+ */
+bool shtc3_sleep(void *conf);
+
+/**
  * \brief Read the sensor values of the SHTC3 sensor.
  * \param conf Unused pointer for future I2C device specification
  * \param repeatibility Sensing repeatability level to use for measuring

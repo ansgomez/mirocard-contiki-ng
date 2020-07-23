@@ -78,10 +78,59 @@ static int value(int type)
   }
 }
 /*---------------------------------------------------------------------------*/
+/** 
+ * \brief Turn the sensor on/off
+ * \param enable TRUE: on, FALSE: off
+ */
+static void
+enable_sensor(bool enable)
+{
+  uint16_t had_data_ready = shtc3_state & SHTC3_STATE_DATA_READY;
+
+  if(enable) {
+    // shtc3_wakeup(NULL);
+    shtc3_init(NULL);
+    printf("Enabled SHT\n");
+
+    /* Writing CONFIG_ENABLE_SINGLE_SHOT to M bits will clear CRF bits */
+    shtc3_state = SHTC3_STATE_ACTIVE;
+  } else {
+    /* Writing CONFIG_DISABLE to M bits will not clear CRF bits */
+    shtc3_state = SHTC3_STATE_SLEEP | had_data_ready;
+    shtc3_sleep(NULL);
+    printf("Disabled SHT\n");
+  }
+
+}
+/*---------------------------------------------------------------------------*/
 static int
 configure(int type, int enable)
 {
   return shtc3_init(NULL);
+  // int rv = 0;
+
+  // switch(type) {
+  // case SENSORS_HW_INIT:
+  //   /*
+  //    * Device reset won't reset the sensor, so we put it to sleep here
+  //    * explicitly
+  //    */
+  //   enable_sensor(0);
+  //   rv = 0;
+  //   break;
+  // case SENSORS_ACTIVE:
+  //   if(enable) {
+  //     enable_sensor(1);
+  //     rv = 1;
+  //   } else {
+  //     enable_sensor(0);
+  //     rv = 0;
+  //   }
+  //   break;
+  // default:
+  //   break;
+  // }
+  // return rv;
 }
 /*---------------------------------------------------------------------------*/
 static int
