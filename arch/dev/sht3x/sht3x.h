@@ -69,7 +69,7 @@ int32_t sht3x_convert_humidity(uint16_t raw);
 /**
  * \brief Initialise the SHT3x sensor
  * \param conf Unused pointer for future I2C device specification
- * \return Wheter the operation succeeded
+ * \return Whether the operation succeeded
  */
 bool sht3x_init(void *conf);
 
