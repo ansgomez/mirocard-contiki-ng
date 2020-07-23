@@ -242,8 +242,7 @@ static void
 init_sht_reading(void *not_used)
 {
   // configure SHT3x sensor
-  shtc3_sensor.configure(0, 0);
-
+  SENSORS_ACTIVATE(shtc3_sensor);
   get_sht_reading();
 }
 /*---------------------------------------------------------------------------*/
