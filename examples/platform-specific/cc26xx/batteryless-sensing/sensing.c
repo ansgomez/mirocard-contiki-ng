@@ -108,7 +108,7 @@
 #endif
 
 /*---------------------------------------------------------------------------*/
-static struct etimer et;
+// static struct etimer et;
 /*---------------------------------------------------------------------------*/
 PROCESS(cc26xx_demo_process, "cc26xx demo process");
 AUTOSTART_PROCESSES(&cc26xx_demo_process);
@@ -139,8 +139,8 @@ static void
 get_light_reading()
 {
   int value;
-  clock_time_t next = SENSOR_READING_PERIOD +
-    (random_rand() % SENSOR_READING_RANDOM);
+  // clock_time_t next = SENSOR_READING_PERIOD +
+    // (random_rand() % SENSOR_READING_RANDOM);
 
   value = opt_3001_sensor.value(0);
   if(value != CC26XX_SENSOR_READING_ERROR) {
@@ -151,11 +151,23 @@ get_light_reading()
 }
 /*---------------------------------------------------------------------------*/
 static void
+get_sht_reading()
+{
+  // read ambient sensor values
+  int temperature = shtc3_sensor.value(SHTC3_TYPE_TEMPERATURE);
+  int humidity = shtc3_sensor.value(SHTC3_TYPE_HUMIDITY);
+
+  // print read sensor values
+  printf("SHTC3:  TEMP = % 5d [degC x 100]\n", temperature);
+  printf("SHTC3:  RH   = % 5d [%% x 100]\n", humidity);
+}
+/*---------------------------------------------------------------------------*/
+static void
 get_mpu_reading()
 {
   int value;
-  clock_time_t next = SENSOR_READING_PERIOD +
-    (random_rand() % SENSOR_READING_RANDOM);
+  // clock_time_t next = SENSOR_READING_PERIOD +
+  //   (random_rand() % SENSOR_READING_RANDOM);
 
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_X);
   if(value != CC26XX_SENSOR_READING_ERROR) {
@@ -227,6 +239,15 @@ init_mpu_reading(void *not_used)
 }
 /*---------------------------------------------------------------------------*/
 static void
+init_sht_reading(void *not_used)
+{
+  // configure SHT3x sensor
+  shtc3_sensor.configure(0, 0);
+
+  get_sht_reading();
+}
+/*---------------------------------------------------------------------------*/
+static void
 get_sync_sensor_readings(void)
 {
   int value;
@@ -251,8 +272,10 @@ init_sensors(void)
 static void
 init_sensor_readings(void)
 {
-  SENSORS_ACTIVATE(opt_3001_sensor);
+  init_opt_reading(NULL);
   init_mpu_reading(NULL);
+  init_sht_reading(NULL);
+  
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cc26xx_demo_process, ev, data)
@@ -281,7 +304,8 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   // }
 
   printf("Triggering new sensor reading\n");
-  // get_sync_sensor_readings();
+  init_sensors();
+  get_sync_sensor_readings();
   init_sensor_readings();
 
   count=0;
