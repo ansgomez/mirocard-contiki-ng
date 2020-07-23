@@ -36,7 +36,6 @@
 /*---------------------------------------------------------------------------*/
 #define SHTC3_TYPE_TEMPERATURE  0
 #define SHTC3_TYPE_HUMIDITY     1
-#define SHTC3_TYPE_ALL          (SHTC3_TYPE_HUMIDITY | SHTC3_TYPE_TEMPERATURE)
 /*---------------------------------------------------------------------------*/
 extern const struct sensors_sensor shtc3_sensor;
 /*---------------------------------------------------------------------------*/

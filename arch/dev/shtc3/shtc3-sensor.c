@@ -49,6 +49,7 @@ static int value(int type)
 {
   // return most negative interger on invalid type
   if (type != SHTC3_TYPE_TEMPERATURE && type != SHTC3_TYPE_HUMIDITY) {
+    printf("SHTC3: asking wrong value type\n");
     return INT_MIN;
   }
   
@@ -61,15 +62,18 @@ static int value(int type)
       shtc3_values_updated[SHTC3_TYPE_TEMPERATURE] = true;
       shtc3_values_updated[SHTC3_TYPE_HUMIDITY] = true;
     }
+    else {
+      printf("SHTC3: Unable to read new values from I2C\n");
+    }
   }
 
   // check if updated value available
   if (type == SHTC3_TYPE_TEMPERATURE &&
-      shtc3_values_updated[SHTC3_TYPE_TEMPERATURE]) {
+              shtc3_values_updated[SHTC3_TYPE_TEMPERATURE]) {
     shtc3_values_updated[SHTC3_TYPE_TEMPERATURE] = false;
     return shtc3_convert_temperature(shtc3_raw_values[SHTC3_TYPE_TEMPERATURE]);
   } else if (type == SHTC3_TYPE_HUMIDITY && 
-             shtc3_values_updated[SHTC3_TYPE_HUMIDITY]) {
+              shtc3_values_updated[SHTC3_TYPE_HUMIDITY]) {
     shtc3_values_updated[SHTC3_TYPE_HUMIDITY] = false;
     return shtc3_convert_humidity(shtc3_raw_values[SHTC3_TYPE_HUMIDITY]);
   } else {
