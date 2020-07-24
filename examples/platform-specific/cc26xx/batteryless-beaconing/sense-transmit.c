@@ -116,6 +116,9 @@ static struct etimer et;
 static uint32_t timestamp;
 static int accel[3];
 static uint16_t light;
+static int temp;
+static uint16_t rh;
+
 /* ------------------------------------------------------------------------- */
 /**
  * Set peripherals to sleep, configure EMU and enter deep sleep.
@@ -259,6 +262,18 @@ get_sync_sensor_readings(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
+get_sht_reading()
+{
+  // read ambient sensor values
+  temp = shtc3_sensor.value(SHTC3_TYPE_TEMPERATURE);
+  rh = shtc3_sensor.value(SHTC3_TYPE_HUMIDITY);
+
+  // print read sensor values
+  printf("SHTC3:  TEMP = % 5d [degC x 100]\n", temp);
+  printf("SHTC3:  RH   = % 5d [%% x 100]\n", rh);
+}
+/*---------------------------------------------------------------------------*/
+static void
 init_sensors(void)
 {
   SENSORS_ACTIVATE(batmon_sensor);
@@ -269,6 +284,9 @@ init_sensor_readings(void)
 {
   SENSORS_ACTIVATE(opt_3001_sensor);
   // init_mpu_reading(NULL);
+  SENSORS_ACTIVATE(shtc3_sensor);
+  get_sht_reading();
+  // SENSORS_DEACTIVATE(shtc3_sensor);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(batteryless_process, ev, data)
@@ -312,8 +330,11 @@ PROCESS_THREAD(batteryless_process, ev, data)
   // ti_lib_gpio_set_dio(BOARD_IOID_GPIO_2);
   /*-------------------------------------------------------------------------*/
   printf("Triggering new sensor reading\n");
+  init_sensors();
   // get_sync_sensor_readings();
   init_sensor_readings();
+  get_sync_sensor_readings();
+
   count=0;
   while(count<1) {
     PROCESS_YIELD_UNTIL((ev == sensors_event));
