@@ -50,15 +50,15 @@ typedef struct batteryless_data_state {
 /**
  * Actual size of the unaligned transient data unit structure
  */
-#define BATTERYLESS_DATA_UNIT_SIZE    18
+#define BATTERYLESS_DATA_UNIT_SIZE    14
 /*---------------------------------------------------------------------------*/
 typedef union batteryless_data_unit {
   struct {
     uint32_t time;
-    int accel[3];
+    uint16_t rh;
+    uint16_t temp;
     uint16_t light;
-    int temp;
-    int rh;
+    int accel[3];
   };
   uint8_t bytes[BATTERYLESS_DATA_UNIT_SIZE];
 } batteryless_data_unit_t CC_ALIGN (4);
