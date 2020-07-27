@@ -109,6 +109,8 @@
 #define CC26XX_DEMO_TRIGGER_2     BOARD_BUTTON_HAL_INDEX_KEY_RIGHT
 #endif
 
+#define MPU_SENSOR_TYPE MPU_9250_SENSOR_TYPE_ALL
+
 /*---------------------------------------------------------------------------*/
 static uint32_t timestamp=0;
 static int accel[3]={0};
@@ -169,64 +171,66 @@ static void
 get_mpu_reading()
 {
   int value;
-  // clock_time_t next = SENSOR_READING_PERIOD +
-  //   (random_rand() % SENSOR_READING_RANDOM);
 
-  value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_X);
-  if(value != CC26XX_SENSOR_READING_ERROR) {
-    printf("MPU Gyro: X=");
-    print_mpu_reading(value);
-    printf(" deg/sec\n");
-  } else {
-    printf("Error Reading MPU Gyro X\n");
+  if( (MPU_SENSOR_TYPE & MPU_9250_SENSOR_TYPE_GYRO) == MPU_9250_SENSOR_TYPE_GYRO ) {
+    value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_X);
+    if(value != CC26XX_SENSOR_READING_ERROR) {
+      printf("MPU Gyro: X=");
+      print_mpu_reading(value);
+      printf(" deg/sec\n");
+    } else {
+      printf("Error Reading MPU Gyro X\n");
+    }
+
+    value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Y);
+    if(value != CC26XX_SENSOR_READING_ERROR) {
+      printf("MPU Gyro: Y=");
+      print_mpu_reading(value);
+      printf(" deg/sec\n");
+    } else {
+      printf("Error Reading MPU Gyro Y\n");
+    }
+
+      value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Z);
+    if(value != CC26XX_SENSOR_READING_ERROR) {
+      printf("MPU Gyro: Z=");
+      print_mpu_reading(value);
+      printf(" deg/sec\n");
+    } else {
+      printf("Error Reading MPU Gyro Z\n");
+    }
   }
 
-  value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Y);
-  if(value != CC26XX_SENSOR_READING_ERROR) {
-    printf("MPU Gyro: Y=");
-    print_mpu_reading(value);
-    printf(" deg/sec\n");
-  } else {
-    printf("Error Reading MPU Gyro Y\n");
-  }
+  if( (MPU_SENSOR_TYPE & MPU_9250_SENSOR_TYPE_ACC) == MPU_9250_SENSOR_TYPE_ACC ) { 
+    value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_X);
+    if(value != CC26XX_SENSOR_READING_ERROR) {
+      accel[0] = value;
+      printf("MPU Acc: X=");
+      print_mpu_reading(value);
+      printf(" G\n");
+    } else {
+      printf("Error Reading MPU Acc X\n");
+    }
 
-    value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Z);
-  if(value != CC26XX_SENSOR_READING_ERROR) {
-    printf("MPU Gyro: Z=");
-    print_mpu_reading(value);
-    printf(" deg/sec\n");
-  } else {
-    printf("Error Reading MPU Gyro Z\n");
-  }
+    value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Y);
+    if(value != CC26XX_SENSOR_READING_ERROR) {
+      accel[1] = value;
+      printf("MPU Acc: Y=");
+      print_mpu_reading(value);
+      printf(" G\n");
+    } else {
+      printf("Error Reading MPU Acc Y\n");
+    }
 
-  value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_X);
-  if(value != CC26XX_SENSOR_READING_ERROR) {
-    accel[0] = value;
-    printf("MPU Acc: X=");
-    print_mpu_reading(value);
-    printf(" G\n");
-  } else {
-    printf("Error Reading MPU Acc X\n");
-  }
-
-  value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Y);
-  if(value != CC26XX_SENSOR_READING_ERROR) {
-    accel[1] = value;
-    printf("MPU Acc: Y=");
-    print_mpu_reading(value);
-    printf(" G\n");
-  } else {
-    printf("Error Reading MPU Acc Y\n");
-  }
-
-  value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Z);
-  if(value != CC26XX_SENSOR_READING_ERROR) {
-    accel[2] = value;
-    printf("MPU Acc: Z=");
-    print_mpu_reading(value);
-    printf(" G\n");
-  } else {
-    printf("Error Reading MPU Acc Z\n");
+    value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Z);
+    if(value != CC26XX_SENSOR_READING_ERROR) {
+      accel[2] = value;
+      printf("MPU Acc: Z=");
+      print_mpu_reading(value);
+      printf(" G\n");
+    } else {
+      printf("Error Reading MPU Acc Z\n");
+    }
   }
 
   SENSORS_DEACTIVATE(mpu_9250_sensor);
@@ -241,7 +245,7 @@ init_opt_reading(void *not_used)
 static void
 init_mpu_reading(void *not_used)
 {
-  mpu_9250_sensor.configure(SENSORS_ACTIVE, MPU_9250_SENSOR_TYPE_ALL);
+  mpu_9250_sensor.configure(SENSORS_ACTIVE, MPU_SENSOR_TYPE);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -253,10 +257,11 @@ init_sht_reading(void *not_used)
 }
 /*---------------------------------------------------------------------------*/
 static void
-get_sync_sensor_readings(void)
+get_batmon_sensor_readings(void)
 {
   int value;
 
+  SENSORS_ACTIVATE(batmon_sensor);
   printf("-----------------------------------------\n");
 
   value = batmon_sensor.value(BATMON_SENSOR_TYPE_TEMP);
@@ -265,22 +270,17 @@ get_sync_sensor_readings(void)
   value = batmon_sensor.value(BATMON_SENSOR_TYPE_VOLT);
   printf("Bat: Volt=%d mV\n", (value * 125) >> 5);
 
+  SENSORS_DEACTIVATE(batmon_sensor);
   return;
-}
-/*---------------------------------------------------------------------------*/
-static void
-init_sensors(void)
-{
-  SENSORS_ACTIVATE(batmon_sensor);
 }
 /*---------------------------------------------------------------------------*/
 static void
 init_sensor_readings(void)
 {
+  //Initialize all sensors
   init_opt_reading(NULL);
   init_mpu_reading(NULL);
   init_sht_reading(NULL);
-  
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cc26xx_demo_process, ev, data)
@@ -311,12 +311,13 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   // }
 
   printf("Triggering new sensor reading\n");
-  init_sensors();
-  get_sync_sensor_readings();
+  //Initialize sensors
+  get_batmon_sensor_readings();
   init_sensor_readings();
 
   count=0;
   while(count<2) {
+    //SHTC3 is read within the init function
     PROCESS_YIELD_UNTIL((ev == sensors_event));
     if(data == &opt_3001_sensor) {
       get_light_reading();
@@ -327,16 +328,18 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
     }
   }
 
-
   /* assemble data packet */
   timestamp = 0xABABABAB;
+  uint16_t humidity_raw = (uint16_t)(rh/ 10) & 0x03FF;
+  uint16_t temperature_raw = (uint16_t)(temp+ 4000) & 0x3FFF;
   data_buffer.time = timestamp;
+  data_buffer.rh = humidity_raw;
+  data_buffer.temp = temperature_raw;
+  data_buffer.light = light;
   data_buffer.accel[0] = accel[0];
   data_buffer.accel[1] = accel[1];
   data_buffer.accel[2] = accel[2];
-  data_buffer.light = light;
-  data_buffer.temp = temp;
-  data_buffer.rh = rh;
+  
 #if DEBUG
   PRINTF("sample:  ");
   for (uint8_t i = 0; i < BATTERYLESS_DATA_UNIT_SIZE; i++) {
@@ -374,13 +377,14 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   /*-------------------------------------------------------------------------*/
   /* BLE packet transmission */
   // init RF core APIs and configure TX power
-  rf_core_set_modesel();
-  rf_ble_set_tx_power(0);
+  // rf_core_set_modesel();
+  // rf_ble_set_tx_power(0);
 
-  while(1) {
-  // transmit BLE beacon
-  rf_ble_beacon_single(BLE_ADV_CHANNEL_ALL, ble_payload, 31);
-  }
+  // // while(1) 
+  // {
+  // // transmit BLE beacon
+  // rf_ble_beacon_single(BLE_ADV_CHANNEL_ALL, ble_payload, 31);
+  // }
   /*---------------------------------------------------------------------------*/
   // printf("Finished reading all sensors\n");
   // batteryless_shutdown();
