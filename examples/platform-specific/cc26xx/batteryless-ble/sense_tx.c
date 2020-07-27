@@ -109,14 +109,14 @@
 #define CC26XX_DEMO_TRIGGER_2     BOARD_BUTTON_HAL_INDEX_KEY_RIGHT
 #endif
 
-#define MPU_SENSOR_TYPE MPU_9250_SENSOR_TYPE_ALL
+#define MPU_SENSOR_TYPE MPU_9250_SENSOR_TYPE_ACC
 
 /*---------------------------------------------------------------------------*/
 static uint32_t timestamp=0;
 static int accel[3]={0};
 static uint16_t light=0;
-static int temp=0;
-static int rh=0;
+static int32_t temp=0;
+static int32_t rh=0;
 
 /*---------------------------------------------------------------------------*/
 PROCESS(cc26xx_demo_process, "cc26xx demo process");
@@ -333,8 +333,9 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   uint16_t humidity_raw = (uint16_t)(rh/ 10) & 0x03FF;
   uint16_t temperature_raw = (uint16_t)(temp+ 4000) & 0x3FFF;
   data_buffer.time = timestamp;
-  data_buffer.rh = humidity_raw;
-  data_buffer.temp = temperature_raw;
+  data_buffer.rh_temp_data[0] = (uint8_t)(humidity_raw & 0xFF);
+  data_buffer.rh_temp_data[1] = (uint8_t)(((humidity_raw >> 8) & 0x03) | ((temperature_raw & 0x3F) << 2));
+  data_buffer.rh_temp_data[2] = (uint8_t)((temperature_raw >> 6) & 0xFF);
   data_buffer.light = light;
   data_buffer.accel[0] = accel[0];
   data_buffer.accel[1] = accel[1];
@@ -377,14 +378,14 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   /*-------------------------------------------------------------------------*/
   /* BLE packet transmission */
   // init RF core APIs and configure TX power
-  // rf_core_set_modesel();
-  // rf_ble_set_tx_power(0);
+  rf_core_set_modesel();
+  rf_ble_set_tx_power(0);
 
-  // // while(1) 
-  // {
-  // // transmit BLE beacon
-  // rf_ble_beacon_single(BLE_ADV_CHANNEL_ALL, ble_payload, 31);
-  // }
+  // while(1) 
+  {
+  // transmit BLE beacon
+  rf_ble_beacon_single(BLE_ADV_CHANNEL_ALL, ble_payload, 31);
+  }
   /*---------------------------------------------------------------------------*/
   // printf("Finished reading all sensors\n");
   // batteryless_shutdown();
