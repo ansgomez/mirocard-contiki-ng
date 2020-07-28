@@ -340,10 +340,10 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   data_buffer.rh_temp_data[0] = (uint8_t)(humidity_raw & 0xFF);
   data_buffer.rh_temp_data[1] = (uint8_t)(((humidity_raw >> 8) & 0x03) | ((temperature_raw & 0x3F) << 2));
   data_buffer.rh_temp_data[2] = (uint8_t)((temperature_raw >> 6) & 0xFF);
-  data_buffer.light = 1000;//(uint16_t) (light/10);
-  uint16_t accX_raw = 0x03FF; // (uint16_t) (accel[0] + 200);// & 0x03FF;
-  uint16_t accY_raw = 0x0000;//(uint16_t) (accel[1] + 200);// & 0x03FF;
-  uint16_t accZ_raw = 0x0000;//(uint16_t) (accel[2] + 200);// & 0x03FF;
+  data_buffer.light = (uint16_t) (light/10);
+  uint16_t accX_raw = (uint16_t) (accel[0] + 200);// & 0x03FF;
+  uint16_t accY_raw = (uint16_t) (accel[1] + 200);// & 0x03FF;
+  uint16_t accZ_raw = (uint16_t) (accel[2] + 200);// & 0x03FF;
   data_buffer.acc_data[0] = (uint8_t) (accX_raw & 0x00FF);
   data_buffer.acc_data[1] = (uint8_t) ( ((accX_raw & 0x0300) >> 8) | ((accY_raw & 0x003F) << 2) );
   data_buffer.acc_data[2] = (uint8_t) ( ((accY_raw & 0x03C0) >> 2) | ((accZ_raw & 0x003F) >> 2) );
