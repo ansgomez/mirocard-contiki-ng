@@ -55,9 +55,10 @@ typedef struct batteryless_data_state {
 typedef union batteryless_data_unit {
   struct {
     uint32_t time;
+    uint8_t msg_type;
     uint8_t rh_temp_data[3];
     uint16_t light;
-    int accel[3];
+    uint8_t acc_data[4];
   };
   uint8_t bytes[BATTERYLESS_DATA_UNIT_SIZE];
 } batteryless_data_unit_t CC_ALIGN (4);

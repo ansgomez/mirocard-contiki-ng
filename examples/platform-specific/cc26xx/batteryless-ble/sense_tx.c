@@ -111,10 +111,13 @@
 
 #define MPU_SENSOR_TYPE MPU_9250_SENSOR_TYPE_ACC
 
+#define DEBUG 1
+#define PRINTF(...) printf(__VA_ARGS__)
+
 /*---------------------------------------------------------------------------*/
 static uint32_t timestamp=0;
-static int accel[3]={0};
-static uint16_t light=0;
+static int32_t accel[3]={0};
+static uint32_t light=0;
 static int32_t temp=0;
 static int32_t rh=0;
 
@@ -134,22 +137,22 @@ static void init_opt_reading(void *not_used);
 static void init_mpu_reading(void *not_used);
 /*---------------------------------------------------------------------------*/
 static void
-print_mpu_reading(int reading)
+print_mpu_reading(int16_t reading)
 {
   if(reading < 0) {
     printf("-");
     reading = -reading;
   }
 
-  printf("%d.%02d", reading / 100, reading % 100);
+  printf("%hd", reading );
 }
 /*---------------------------------------------------------------------------*/
 static void
 get_light_reading()
 {
-  light = opt_3001_sensor.value(0);
+  light = (uint32_t) opt_3001_sensor.value(0);
   if(light != CC26XX_SENSOR_READING_ERROR) {
-    printf("OPT: Light=%d.%02d lux\n", light / 100, light % 100);
+    printf("OPT: Light=%lu lux\n", light);
   } else {
     printf("OPT: Light Read Error\n");
   }
@@ -163,8 +166,8 @@ get_sht_reading()
   rh = shtc3_sensor.value(SHTC3_TYPE_HUMIDITY);
 
   // print read sensor values
-  printf("SHTC3:  TEMP = % 5d [degC x 100]\n", temp);
-  printf("SHTC3:  RH   = % 5d [%% x 100]\n", rh);
+  printf("SHTC3:  TEMP = % 5ld [degC x 100]\n", temp);
+  printf("SHTC3:  RH   = % 5ld [%% x 100]\n", rh);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -204,7 +207,7 @@ get_mpu_reading()
   if( (MPU_SENSOR_TYPE & MPU_9250_SENSOR_TYPE_ACC) == MPU_9250_SENSOR_TYPE_ACC ) { 
     value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_X);
     if(value != CC26XX_SENSOR_READING_ERROR) {
-      accel[0] = value;
+      accel[0] = (uint16_t) value;
       printf("MPU Acc: X=");
       print_mpu_reading(value);
       printf(" G\n");
@@ -214,7 +217,7 @@ get_mpu_reading()
 
     value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Y);
     if(value != CC26XX_SENSOR_READING_ERROR) {
-      accel[1] = value;
+      accel[1] = (uint16_t) value;
       printf("MPU Acc: Y=");
       print_mpu_reading(value);
       printf(" G\n");
@@ -224,7 +227,7 @@ get_mpu_reading()
 
     value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Z);
     if(value != CC26XX_SENSOR_READING_ERROR) {
-      accel[2] = value;
+      accel[2] = (uint16_t) value;
       printf("MPU Acc: Z=");
       print_mpu_reading(value);
       printf(" G\n");
@@ -332,15 +335,23 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   timestamp = 0xABABABAB;
   uint16_t humidity_raw = (uint16_t)(rh/ 10) & 0x03FF;
   uint16_t temperature_raw = (uint16_t)(temp+ 4000) & 0x3FFF;
+  data_buffer.msg_type = 0xFF; //temp for all value
   data_buffer.time = timestamp;
   data_buffer.rh_temp_data[0] = (uint8_t)(humidity_raw & 0xFF);
   data_buffer.rh_temp_data[1] = (uint8_t)(((humidity_raw >> 8) & 0x03) | ((temperature_raw & 0x3F) << 2));
   data_buffer.rh_temp_data[2] = (uint8_t)((temperature_raw >> 6) & 0xFF);
-  data_buffer.light = light;
-  data_buffer.accel[0] = accel[0];
-  data_buffer.accel[1] = accel[1];
-  data_buffer.accel[2] = accel[2];
-  
+  data_buffer.light = 1000;//(uint16_t) (light/10);
+  uint16_t accX_raw = 0x03FF; // (uint16_t) (accel[0] + 200);// & 0x03FF;
+  uint16_t accY_raw = 0x0000;//(uint16_t) (accel[1] + 200);// & 0x03FF;
+  uint16_t accZ_raw = 0x0000;//(uint16_t) (accel[2] + 200);// & 0x03FF;
+  data_buffer.acc_data[0] = (uint8_t) (accX_raw & 0x00FF);
+  data_buffer.acc_data[1] = (uint8_t) ( ((accX_raw & 0x0300) >> 8) | ((accY_raw & 0x003F) << 2) );
+  data_buffer.acc_data[2] = (uint8_t) ( ((accY_raw & 0x03C0) >> 2) | ((accZ_raw & 0x003F) >> 2) );
+  data_buffer.acc_data[3] = (uint8_t) (( (accZ_raw & 0x00FF) >> 4) );
+
+  printf("Raw Light: %u\n",data_buffer.light);
+  printf("Raw: X:%u,Y:%u,Z:%u\n",accX_raw,accY_raw,accZ_raw);
+
 #if DEBUG
   PRINTF("sample:  ");
   for (uint8_t i = 0; i < BATTERYLESS_DATA_UNIT_SIZE; i++) {
