@@ -2,7 +2,7 @@
  * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
  * Copyright (c) 2017, University of Bristol - http://www.bris.ac.uk/
  * Copyright (c) 2018, Swiss Federal Institute of Technology (ETH Zurich)
- * Copyright (c) 2020, Miromico AG
+ * Copyright (c) 2020, Miromico AG - http://www.miromico.ch/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
