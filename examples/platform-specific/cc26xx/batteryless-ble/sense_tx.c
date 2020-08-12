@@ -117,7 +117,7 @@
 #define LIGHT_TYPE  0x02
 #define MPU_TYPE    0x04
 
-#define BEACON_TYPE LIGHT_TYPE
+#define BEACON_TYPE MPU_TYPE
 
 #define DEBUG 0
 
@@ -174,6 +174,10 @@ countSetBits(uint8_t n)
         count += n & 1; 
         n >>= 1; 
     } 
+
+    if((BEACON_TYPE&TEMP_TYPE)==TEMP_TYPE) { 
+      count = count -1;
+    }
     return count; 
 } 
 /*---------------------------------------------------------------------------*/
@@ -364,23 +368,29 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
     // system_state.task_id = 0;
   }
 
-  // printf("Triggering new sensor reading\n");
-  // //Initialize sensors
-  // get_batmon_sensor_readings();
-  // init_sensor_readings();
+  printf("Triggering new sensor reading\n");
+  //Initialize sensors
+  get_batmon_sensor_readings();
+  init_sensor_readings();
 
-  // count=0;
-  // while(count<countSetBits((uint8_t)BEACON_TYPE)) {
-  //   //SHTC3 is read within the init function
-  //   PROCESS_YIELD_UNTIL((ev == sensors_event));
-  //   if(data == &opt_3001_sensor) {
-  //     get_light_reading();
-  //     count++;
-  //   } else if(data == &mpu_9250_sensor) {
-  //     get_mpu_reading();
-  //     count++;
-  //   }
-  // }
+  printf("Sensor Config: %d\n",BEACON_TYPE);
+
+  printf("Waiting for %d readings\n",countSetBits((uint8_t)BEACON_TYPE));
+
+  count=0;
+  while(count<countSetBits((uint8_t)BEACON_TYPE)) {
+    //SHTC3 is read within the init function
+    PROCESS_YIELD_UNTIL((ev == sensors_event));
+    if(data == &opt_3001_sensor) {
+      get_light_reading();
+      count++;
+    } else if(data == &mpu_9250_sensor) {
+      get_mpu_reading();
+      count++;
+    }
+  }
+
+  printf("Finished reading!\n");
 
   /* assemble data packet */
   timestamp = 0xABABABAB;
