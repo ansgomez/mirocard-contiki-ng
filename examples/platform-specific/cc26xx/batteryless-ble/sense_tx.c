@@ -112,6 +112,12 @@
 
 #define MPU_SENSOR_TYPE MPU_9250_SENSOR_TYPE_ACC
 
+#define TEMP_TYPE   0x01
+#define LIGHT_TYPE  0x02
+#define MPU_TYPE    0x04
+
+#define BEACON_TYPE MPU_TYPE
+
 #define DEBUG 1
 #define PRINTF(...) printf(__VA_ARGS__)
 
@@ -137,6 +143,20 @@ AUTOSTART_PROCESSES(&cc26xx_demo_process);
 static void init_opt_reading(void *not_used);
 static void init_mpu_reading(void *not_used);
 /*---------------------------------------------------------------------------*/
+
+/* Function to get no of set bits in binary 
+representation of positive integer n */
+static unsigned int 
+countSetBits(uint8_t n) 
+{ 
+    unsigned int count = 0; 
+    while (n) { 
+        count += n & 1; 
+        n >>= 1; 
+    } 
+    return count; 
+} 
+/*---------------------------------------------------------------------------*/
 static void
 print_mpu_reading(int16_t reading)
 {
@@ -157,6 +177,7 @@ get_light_reading()
   } else {
     printf("OPT: Light Read Error\n");
   }
+  SENSORS_DEACTIVATE(opt_3001_sensor);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -258,6 +279,7 @@ init_sht_reading(void *not_used)
   // configure SHT3x sensor
   SENSORS_ACTIVATE(shtc3_sensor);
   get_sht_reading();
+  SENSORS_DEACTIVATE(shtc3_sensor);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -282,9 +304,15 @@ static void
 init_sensor_readings(void)
 {
   //Initialize all sensors
-  init_opt_reading(NULL);
-  init_mpu_reading(NULL);
-  init_sht_reading(NULL);
+  if ( (BEACON_TYPE&TEMP_TYPE) == TEMP_TYPE  ) {
+    init_sht_reading(NULL);
+  }
+  if ( (BEACON_TYPE&LIGHT_TYPE) == LIGHT_TYPE  ) {
+    init_opt_reading(NULL);
+  } 
+  if ( (BEACON_TYPE&MPU_TYPE) == MPU_TYPE  ) {
+    init_mpu_reading(NULL);
+  }  
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cc26xx_demo_process, ev, data)
@@ -316,11 +344,11 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
 
   printf("Triggering new sensor reading\n");
   //Initialize sensors
-  get_batmon_sensor_readings();
+  // get_batmon_sensor_readings();
   init_sensor_readings();
 
   count=0;
-  while(count<2) {
+  while(count<countSetBits((uint8_t)BEACON_TYPE)) {
     //SHTC3 is read within the init function
     PROCESS_YIELD_UNTIL((ev == sensors_event));
     if(data == &opt_3001_sensor) {
