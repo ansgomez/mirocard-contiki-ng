@@ -36,7 +36,7 @@
 #define BUTTON_SENSOR_CONF_ENABLE_SHUTDOWN  0
 /*---------------------------------------------------------------------------*/
 /* Enable/Disable UART and system LED I/O */
-#define CC26XX_UART_CONF_ENABLE             1
+#define CC26XX_UART_CONF_ENABLE             0
 #define CC26XX_LED_CONF_ENABLE              0
 /*---------------------------------------------------------------------------*/
 /* Internal RCOSC as LF clock sufficient and initialized much faster */

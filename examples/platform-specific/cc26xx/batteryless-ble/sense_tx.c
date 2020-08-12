@@ -116,10 +116,15 @@
 #define LIGHT_TYPE  0x02
 #define MPU_TYPE    0x04
 
-#define BEACON_TYPE MPU_TYPE
+#define BEACON_TYPE TEMP_TYPE
 
-#define DEBUG 1
+#define DEBUG 0
+
+#if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...) 
+#endif
 
 /*---------------------------------------------------------------------------*/
 static uint32_t timestamp=0;
@@ -142,6 +147,20 @@ AUTOSTART_PROCESSES(&cc26xx_demo_process);
 /*---------------------------------------------------------------------------*/
 static void init_opt_reading(void *not_used);
 static void init_mpu_reading(void *not_used);
+/*---------------------------------------------------------------------------*/
+
+/**
+ * Set peripherals to sleep, configure EMU and enter deep sleep.
+ * @note This function enters deep sleep and does NOT return.
+ * @param emu_energy EMU energy burst size for wakeup
+ * @param emu_voltage Voltage level for next EMU energy burst
+ */
+static inline void batteryless_shutdown() {
+
+  // LPM with GPIO triggered wakeup
+  lpm_shutdown(WAKEUP_TRIGGER_IOID, IOC_NO_IOPULL, WAKEUP_TRIGGER_EDGE);
+}
+
 /*---------------------------------------------------------------------------*/
 
 /* Function to get no of set bits in binary 
@@ -320,45 +339,47 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   static int count =0;
   static batteryless_data_unit_t data_buffer;
   static uint8_t ble_payload[BLE_ADV_MAX_SIZE];
+  static uint8_t reset_source;
   PROCESS_BEGIN();
 
-  printf("Reset source: 0x%x\n", (uint8_t)ti_lib_sys_ctrl_reset_source_get());
+  reset_source = (uint8_t)ti_lib_sys_ctrl_reset_source_get();
+  printf("Reset source: 0x%x\n", reset_source);
 
-  // // if not triggered by GPIO or emulated, cold start init for sleep only
-  // if (system_state.reset_source != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
-  //   /*-----------------------------------------------------------------------*/
-  //   PRINTF("Going to sleep waiting for trigger\n");
-  //   // GPIO CONFIG 1-a
-  //   ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
-  //   /*-----------------------------------------------------------------------*/
-  //   /* cold start init for sleep only */
-  //   batteryless_shutdown();
-  //   /*-----------------------------------------------------------------------*/
-  // } else {
-  //   /* wakeup from LPM on GPIO trigger, do initialize for execution */
-  //   PRINTF("Woken up to perform a task\n");
-  //   // reset default system state and task id
-  //   system_state.status = 0x00;
-  //   system_state.task_id = 0;
-  // }
-
-  printf("Triggering new sensor reading\n");
-  //Initialize sensors
-  // get_batmon_sensor_readings();
-  init_sensor_readings();
-
-  count=0;
-  while(count<countSetBits((uint8_t)BEACON_TYPE)) {
-    //SHTC3 is read within the init function
-    PROCESS_YIELD_UNTIL((ev == sensors_event));
-    if(data == &opt_3001_sensor) {
-      get_light_reading();
-      count++;
-    } else if(data == &mpu_9250_sensor) {
-      get_mpu_reading();
-      count++;
-    }
+  // if not triggered by GPIO or emulated, cold start init for sleep only
+  if (reset_source != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
+    /*-----------------------------------------------------------------------*/
+    PRINTF("Going to sleep waiting for trigger\n");
+    // GPIO CONFIG 1-a
+    ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
+    /*-----------------------------------------------------------------------*/
+    /* cold start init for sleep only */
+    batteryless_shutdown();
+    /*-----------------------------------------------------------------------*/
+  } else {
+    /* wakeup from LPM on GPIO trigger, do initialize for execution */
+    PRINTF("Woken up to perform a task\n");
+    // reset default system state and task id
+    // system_state.status = 0x00;
+    // system_state.task_id = 0;
   }
+
+  // printf("Triggering new sensor reading\n");
+  // //Initialize sensors
+  // // get_batmon_sensor_readings();
+  // init_sensor_readings();
+
+  // count=0;
+  // while(count<countSetBits((uint8_t)BEACON_TYPE)) {
+  //   //SHTC3 is read within the init function
+  //   PROCESS_YIELD_UNTIL((ev == sensors_event));
+  //   if(data == &opt_3001_sensor) {
+  //     get_light_reading();
+  //     count++;
+  //   } else if(data == &mpu_9250_sensor) {
+  //     get_mpu_reading();
+  //     count++;
+  //   }
+  // }
 
   /* assemble data packet */
   timestamp = 0xABABABAB;
