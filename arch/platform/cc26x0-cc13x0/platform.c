@@ -181,7 +181,7 @@ platform_init_stage_one()
   if (((uint8_t)ti_lib_sys_ctrl_reset_source_get()) != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
     /*-----------------------------------------------------------------------*/
     // GPIO CONFIG 1-a
-    ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
+    // ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
     /*-----------------------------------------------------------------------*/
     /* cold start init for sleep only */
     // LPM with GPIO triggered wakeup

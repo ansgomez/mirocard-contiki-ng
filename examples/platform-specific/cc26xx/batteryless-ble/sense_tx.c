@@ -83,6 +83,7 @@
 #include "dev/leds.h"
 #include "dev/watchdog.h"
 #include "dev/button-hal.h"
+#include "lpm.h"
 #include "random.h"
 #include "board.h"
 #include "button-sensor.h"
@@ -116,7 +117,7 @@
 #define LIGHT_TYPE  0x02
 #define MPU_TYPE    0x04
 
-#define BEACON_TYPE TEMP_TYPE
+#define BEACON_TYPE LIGHT_TYPE
 
 #define DEBUG 0
 
@@ -350,7 +351,7 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
     /*-----------------------------------------------------------------------*/
     PRINTF("Going to sleep waiting for trigger\n");
     // GPIO CONFIG 1-a
-    ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
+    // ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
     /*-----------------------------------------------------------------------*/
     /* cold start init for sleep only */
     batteryless_shutdown();
@@ -365,7 +366,7 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
 
   // printf("Triggering new sensor reading\n");
   // //Initialize sensors
-  // // get_batmon_sensor_readings();
+  // get_batmon_sensor_readings();
   // init_sensor_readings();
 
   // count=0;
@@ -449,7 +450,7 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   }
   /*---------------------------------------------------------------------------*/
   // printf("Finished reading all sensors\n");
-  // batteryless_shutdown();
+  batteryless_shutdown();
   /*---------------------------------------------------------------------------*/
   PROCESS_END();
 }
