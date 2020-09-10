@@ -3,7 +3,7 @@ CONTIKI ?= ../../../../
 CONTIKI_PROJECT = blinky
 
 TARGET=cc26x0-cc13x0
-BOARD=miromico-batteryless/cc2650
+BOARD=mirocard/cc2650
 CFLAGS += -g
 
 

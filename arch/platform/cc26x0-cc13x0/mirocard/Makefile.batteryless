@@ -1,7 +1,7 @@
 CFLAGS += -DBOARD_TRANSIENT=1
 CFLAGS += -DBACKDOOR_IOID=0x00000000
 
-CONTIKI_TARGET_DIRS += miromico-batteryless common 
+CONTIKI_TARGET_DIRS += mirocard common 
 
 BOARD_SOURCEFILES += batteryless-sensors.c board-buttons.c sensor-common.c
 BOARD_SOURCEFILES += opt-3001-sensor.c mpu-9250-sensor.c

@@ -2,7 +2,7 @@ CONTIKI ?= ../../../../
 CONTIKI_PROJECT = sense-transmit
 
 TARGET=cc26x0-cc13x0
-BOARD=miromico-batteryless/cc2650
+BOARD=mirocard/cc2650
 CFLAGS += -g
 
 CONTIKI_SOURCEFILES += data.c

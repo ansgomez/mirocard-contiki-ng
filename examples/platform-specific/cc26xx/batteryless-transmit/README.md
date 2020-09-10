@@ -62,13 +62,13 @@ To build the project, make sure the [required software](https://github.com/conti
 
 The command to compile the project is:
 ```bash
-make TARGET=cc26x0-cc13x0 BOARD=miromico-batteryless/cc2650
+make TARGET=cc26x0-cc13x0 BOARD=mirocard/cc2650
 ```
 
 
 For flashing the binary there are multiple options, see the [contiki-ng wiki](https://github.com/contiki-ng/contiki-ng/wiki/Platform-srf06-cc26xx#how-to-program-your-device) for detailed explanation. Initial flashing needs to be done via JTAG to flash the bootloader code. Afterwards the bootloader option is available: to compile and flash the binary in one command, you may use the following do-all-in-one command (replace `/dev/ttyUSB0` with your device):
 ```bash
-make TARGET=cc26x0-cc13x0 BOARD=miromico-batteryless/cc2650 PORT=/dev/ttyUSB0 batteryless.upload
+make TARGET=cc26x0-cc13x0 BOARD=mirocard/cc2650 PORT=/dev/ttyUSB0 batteryless.upload
 ```
 
 Sometimes the build system hangs up. In that case a complete cleanup and rebuild (also in the contiki tree) usually helps.
