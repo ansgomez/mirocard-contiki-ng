@@ -27,55 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*---------------------------------------------------------------------------*/
-/**
- * \addtogroup cc26xx-platforms
- * @{
- *
- * \defgroup cc26xx-examples CC26xx Example Projects
- *
- * Example projects for CC26xx-based platforms.
- * @{
- *
- * \defgroup cc26xx-demo CC26xx Demo Project
- *
- *   Example project demonstrating the CC13xx/CC26xx platforms
- *
- *   This example will work for the following boards:
- *   - cc26x0-cc13x0: SmartRF06EB + CC13xx/CC26xx EM
- *   - CC2650 and CC1350 SensorTag
- *   - CC1310, CC1350, CC2650 LaunchPads
- *
- *   This is an IPv6/RPL-enabled example. Thus, if you have a border router in
- *   your installation (same RDC layer, same PAN ID and RF channel), you should
- *   be able to ping6 this demo node.
- *
- *   This example also demonstrates CC26xx BLE operation. The process starts
- *   the BLE beacon daemon (implemented in the RF driver). The daemon will
- *   send out a BLE beacon periodically. Use any BLE-enabled application (e.g.
- *   LightBlue on OS X or the TI BLE Multitool smartphone app) and after a few
- *   seconds the cc26xx device will be discovered.
- *
- * - etimer/clock : Every CC26XX_DEMO_LOOP_INTERVAL clock ticks the LED defined
- *                  as CC26XX_DEMO_LEDS_PERIODIC will toggle and the device
- *                  will print out readings from some supported sensors
- * - sensors      : Some sensortag sensors are read asynchronously (see sensor
- *                  documentation). For those, this example will print out
- *                  readings in a staggered fashion at a random interval
- * - Buttons      : CC26XX_DEMO_TRIGGER_1 button will toggle CC26XX_DEMO_LEDS_BUTTON
- *                - CC26XX_DEMO_TRIGGER_2 turns on LEDS_REBOOT and causes a
- *                  watchdog reboot
- *                - The remaining buttons will just print something
- *                - The example also shows how to retrieve the duration of a
- *                  button press (in ticks). The driver will generate a
- *                  sensors_changed event upon button release
- * - Reed Relay   : Will toggle the sensortag buzzer on/off
- *
- * @{
- *
- * \file
- *     Example demonstrating the cc26xx platforms
- */
+
 #include "contiki.h"
 #include "sys/etimer.h"
 #include "sys/ctimer.h"
@@ -93,18 +45,16 @@
 
 #include <stdio.h>
 #include <stdint.h>
-/*---------------------------------------------------------------------------*/
-#define CC26XX_DEMO_LOOP_INTERVAL       (CLOCK_SECOND * 20)
-#define CC26XX_DEMO_LEDS_PERIODIC       LEDS_YELLOW
-#define CC26XX_DEMO_LEDS_BUTTON         LEDS_BLUE
-#define CC26XX_DEMO_LEDS_REBOOT         LEDS_ALL
-/*---------------------------------------------------------------------------*/
-#if BOARD_MIROCARD
-#define CC26XX_DEMO_TRIGGER_1     BOARD_BUTTON_HAL_INDEX_KEY_USER
-#define CC26XX_DEMO_TRIGGER_2     BOARD_BUTTON_HAL_INDEX_KEY_USER
+
+
+#define DEBUG 1
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#if !(CC26XX_UART_CONF_ENABLE)
+#warning "running in debug configuration while serial is NOT enabled!"
+#endif
 #else
-#define CC26XX_DEMO_TRIGGER_1     BOARD_BUTTON_HAL_INDEX_KEY_LEFT
-#define CC26XX_DEMO_TRIGGER_2     BOARD_BUTTON_HAL_INDEX_KEY_RIGHT
+#define PRINTF(...)
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -128,11 +78,11 @@ static void
 print_mpu_reading(int reading)
 {
   if(reading < 0) {
-    printf("-");
+    PRINTF("-");
     reading = -reading;
   }
 
-  printf("%d.%02d", reading / 100, reading % 100);
+  PRINTF("%d.%02d", reading / 100, reading % 100);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -144,9 +94,9 @@ get_light_reading()
 
   value = opt_3001_sensor.value(0);
   if(value != CC26XX_SENSOR_READING_ERROR) {
-    printf("OPT: Light=%d.%02d lux\n", value / 100, value % 100);
+    PRINTF("OPT: Light=%d.%02d lux\n", value / 100, value % 100);
   } else {
-    printf("OPT: Light Read Error\n");
+    PRINTF("OPT: Light Read Error\n");
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -158,8 +108,8 @@ get_sht_reading()
   int humidity = shtc3_sensor.value(SHTC3_TYPE_HUMIDITY);
 
   // print read sensor values
-  printf("SHTC3:  TEMP = % 5d [degC x 100]\n", temperature);
-  printf("SHTC3:  RH   = % 5d [%% x 100]\n", humidity);
+  PRINTF("SHTC3:  TEMP = % 5d [degC x 100]\n", temperature);
+  PRINTF("SHTC3:  RH   = % 5d [%% x 100]\n", humidity);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -171,56 +121,56 @@ get_mpu_reading()
 
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_X);
   if(value != CC26XX_SENSOR_READING_ERROR) {
-    printf("MPU Gyro: X=");
+    PRINTF("MPU Gyro: X=");
     print_mpu_reading(value);
-    printf(" deg/sec\n");
+    PRINTF(" deg/sec\n");
   } else {
-    printf("Error Reading MPU Gyro X\n");
+    PRINTF("Error Reading MPU Gyro X\n");
   }
 
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Y);
   if(value != CC26XX_SENSOR_READING_ERROR) {
-    printf("MPU Gyro: Y=");
+    PRINTF("MPU Gyro: Y=");
     print_mpu_reading(value);
-    printf(" deg/sec\n");
+    PRINTF(" deg/sec\n");
   } else {
-    printf("Error Reading MPU Gyro Y\n");
+    PRINTF("Error Reading MPU Gyro Y\n");
   }
 
     value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Z);
   if(value != CC26XX_SENSOR_READING_ERROR) {
-    printf("MPU Gyro: Z=");
+    PRINTF("MPU Gyro: Z=");
     print_mpu_reading(value);
-    printf(" deg/sec\n");
+    PRINTF(" deg/sec\n");
   } else {
-    printf("Error Reading MPU Gyro Z\n");
+    PRINTF("Error Reading MPU Gyro Z\n");
   }
 
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_X);
   if(value != CC26XX_SENSOR_READING_ERROR) {
-    printf("MPU Acc: X=");
+    PRINTF("MPU Acc: X=");
     print_mpu_reading(value);
-    printf(" G\n");
+    PRINTF(" G\n");
   } else {
-    printf("Error Reading MPU Acc X\n");
+    PRINTF("Error Reading MPU Acc X\n");
   }
 
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Y);
   if(value != CC26XX_SENSOR_READING_ERROR) {
-    printf("MPU Acc: Y=");
+    PRINTF("MPU Acc: Y=");
     print_mpu_reading(value);
-    printf(" G\n");
+    PRINTF(" G\n");
   } else {
-    printf("Error Reading MPU Acc Y\n");
+    PRINTF("Error Reading MPU Acc Y\n");
   }
 
   value = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Z);
   if(value != CC26XX_SENSOR_READING_ERROR) {
-    printf("MPU Acc: Z=");
+    PRINTF("MPU Acc: Z=");
     print_mpu_reading(value);
-    printf(" G\n");
+    PRINTF(" G\n");
   } else {
-    printf("Error Reading MPU Acc Z\n");
+    PRINTF("Error Reading MPU Acc Z\n");
   }
 
   SENSORS_DEACTIVATE(mpu_9250_sensor);
@@ -251,13 +201,13 @@ get_sync_sensor_readings(void)
 {
   int value;
 
-  printf("-----------------------------------------\n");
+  PRINTF("-----------------------------------------\n");
 
   value = batmon_sensor.value(BATMON_SENSOR_TYPE_TEMP);
-  printf("Bat: Temp=%d C\n", value);
+  PRINTF("Bat: Temp=%d C\n", value);
 
   value = batmon_sensor.value(BATMON_SENSOR_TYPE_VOLT);
-  printf("Bat: Volt=%d mV\n", (value * 125) >> 5);
+  PRINTF("Bat: Volt=%d mV\n", (value * 125) >> 5);
 
   return;
 }
@@ -280,29 +230,35 @@ init_sensor_readings(void)
 PROCESS_THREAD(cc26xx_demo_process, ev, data)
 {
   static int count =0;
+  static uint8_t state;
   PROCESS_BEGIN();
 
-  printf("Reset source: 0x%x\n", (uint8_t)ti_lib_sys_ctrl_reset_source_get());
+  // check reset source for power on reset and clear flags
+  state = (uint8_t)ti_lib_sys_ctrl_reset_source_get();
+  PRINTF("Reset source: 0x%x\n", state);
 
-  // // if not triggered by GPIO or emulated, cold start init for sleep only
-  // if (system_state.reset_source != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
-  //   /*-----------------------------------------------------------------------*/
-  //   PRINTF("Going to sleep waiting for trigger\n");
-  //   // GPIO CONFIG 1-a
-  //   ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
-  //   /*-----------------------------------------------------------------------*/
-  //   /* cold start init for sleep only */
-  //   batteryless_shutdown();
-  //   /*-----------------------------------------------------------------------*/
-  // } else {
-  //   /* wakeup from LPM on GPIO trigger, do initialize for execution */
-  //   PRINTF("Woken up to perform a task\n");
-  //   // reset default system state and task id
-  //   system_state.status = 0x00;
-  //   system_state.task_id = 0;
-  // }
+  /****
+  * NOTE: This application is meant to test the board with a normal supply.
+  * This application does "not" work in batteryless mode because it needs
+  * too much energy to see an LED turn on. If running in batteryless mode, this
+  * will have very short LED bursts.
+  */ 
+#ifdef MIROCARD_BATTERYLESS
+  // if not triggered by GPIO or emulated, cold start init for sleep only
+  if (state != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
+    /*-----------------------------------------------------------------------*/
+    PRINTF("Going to sleep waiting for trigger\n");
+    /*-----------------------------------------------------------------------*/
+    /* cold start init for sleep only */
+    batteryless_shutdown();
+    /*-----------------------------------------------------------------------*/
+  } else {
+    /* wakeup from LPM on GPIO trigger, do initialize for execution */
+    PRINTF("Woken up to perform a task\n");
+  }
+#endif
 
-  printf("Triggering new sensor reading\n");
+  PRINTF("Triggering new sensor reading\n");
   init_sensors();
   get_sync_sensor_readings();
   init_sensor_readings();
@@ -319,8 +275,10 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
     }
   }
   /*---------------------------------------------------------------------------*/
-  // printf("Finished reading all sensors\n");
-  // batteryless_shutdown();
+#ifdef MIROCARD_BATTERYLESS  
+  PRINTF("Finished reading all sensors\n");
+  batteryless_shutdown();
+#endif
   /*---------------------------------------------------------------------------*/
   PROCESS_END();
 }
