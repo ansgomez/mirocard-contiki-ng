@@ -62,6 +62,7 @@
 #include "dev/gpio-hal.h"
 
 #include "blinky.h"
+
 /*---------------------------------------------------------------------------*/
 #define DEBUG 1
 #if DEBUG
@@ -75,8 +76,11 @@
 /* ------------------------------------------------------------------------- */
 static inline void batteryless_shutdown() {
 
-  // LPM with GPIO triggered wakeup
+  // LPM with WAKEUP triggered activation
   lpm_shutdown(WAKEUP_TRIGGER_IOID, IOC_NO_IOPULL, WAKEUP_TRIGGER_EDGE);
+
+  // LPM with USER SWITCH triggered activation
+  // lpm_shutdown(BOARD_IOID_KEY_USER, IOC_NO_IOPULL, IOC_WAKE_ON_LOW);
 }
 /* ------------------------------------------------------------------------- */
 PROCESS(transient_app_process, "Transient application process");
@@ -93,64 +97,37 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   /*-------------------------------------------------------------------------*/
 
   // check reset source for power on reset and clear flags
-  // state = (uint8_t)ti_lib_sys_ctrl_reset_source_get();
-  // PRINTF("Reset source: 0x%x\n", state);
+  state = (uint8_t)ti_lib_sys_ctrl_reset_source_get();
+  PRINTF("Reset source: 0x%x\n", state);
 
-  // // if not triggered by GPIO or emulated, cold start init for sleep only
-  // if (state != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
-  //   /*-----------------------------------------------------------------------*/
-  //   PRINTF("Going to sleep waiting for trigger\n");
-  //   // GPIO CONFIG 1-a
-  //   ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
-  //   /*-----------------------------------------------------------------------*/
-  //   /* cold start init for sleep only */
-  //   batteryless_shutdown();
-  //   /*-----------------------------------------------------------------------*/
-  // } else {
-  //   /* wakeup from LPM on GPIO trigger, do initialize for execution */
-  //   PRINTF("Woken up to perform a task\n");
-  // }
+  // if not triggered by GPIO or emulated, cold start init for sleep only
+#ifdef MIROCARD_BATTERLESS
+#error
+  if (state != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
+    /*-----------------------------------------------------------------------*/
+    PRINTF("Going to sleep waiting for trigger\n");
+    // GPIO CONFIG 1-a
+    ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
+    /*-----------------------------------------------------------------------*/
+    /* cold start init for sleep only */
+    batteryless_shutdown();
+    /*-----------------------------------------------------------------------*/
+  } else {
+    /* wakeup from LPM on GPIO trigger, do initialize for execution */
+    PRINTF("Woken up to perform a task\n");
+  }
+#endif
 
+  /****
+  * NOTE: This application is meant to test the board with a normal supply.
+  * This application does "not" work in batteryless mode because it needs
+  * too much energy to see an LED turn on. If running in batteryless mode, this
+  * will have very short LED bursts.
+  */ 
   leds_single_on(LEDS_BLUE);
-  etimer_set(&timer, CLOCK_SECOND/20);
-  PROCESS_YIELD_UNTIL((ev == PROCESS_EVENT_TIMER));
+  clock_wait(CLOCK_SECOND/4);
   leds_single_off(LEDS_BLUE);
 
-// set the etimer module to generate an event in one second.
-    // etimer_set(&timer, CLOCK_SECOND );
-    // while (1)
-    // {
-    //     // wait here for an event to happen
-    //     PROCESS_WAIT_EVENT();
- 
-    //     // if the event is the timer event as expected...
-    //     if(ev == PROCESS_EVENT_TIMER)
-    //     {
-    //       if(aux) 
-    //       {
-    //         PRINTF("Turning On\n");
-    //         // TOGGLE LED
-    //         // leds_single_on(LEDS_GREEN);
-    //         // leds_single_on(LEDS_RED);
-    //         leds_single_on(LEDS_BLUE);
-    //       }
-    //       else
-    //       {
-    //         PRINTF("Turning Off\n");
-    //         // leds_single_off(LEDS_GREEN);
-    //         // leds_single_off(LEDS_RED);
-    //         leds_single_off(LEDS_BLUE);
-    //       }
-          
-    //       aux = !aux;
-
-    //       // reset the timer so it will generate an other event
-    //       // the exact same time after it expired (periodicity guaranteed)
-    //       etimer_reset(&timer);
-    //     }
- 
-    //     // and loop
-    // }
   /*-------------------------------------------------------------------------*/
   /* shutdown system for sleep */
   batteryless_shutdown();
