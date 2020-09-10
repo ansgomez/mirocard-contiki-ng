@@ -97,12 +97,21 @@ typedef struct batteryless_system_state {
 /**
  * GPIO used as as wakeup trigger (EMU_TRIG or LED_GPIO for testing)
  */
+/****  EMU COMPARATOR IS ACTIVE LOW  *****/
 #define WAKEUP_TRIGGER_IOID                 BOARD_IOID_EMU_COMP
-// #define WAKEUP_TRIGGER_IOID                 BOARD_IOID_KEY_USER
+
+/****  LED PIN IS ACTIVE LOW  *****/
+// #define WAKEUP_TRIGGER_IOID               BOARD_IOID_LED_1
+
+/****  USER SWITCH IS ACTIVE LOW  *****/
+// #define WAKEUP_TRIGGER_IOID               BOARD_IOID_KEY_USER 
 /**
  * GPIO trigger edge (IOC_WAKE_ON_HIGH or IOC_WAKE_ON_LOW for parallel testing)
  */
+/****  USE THIS DEFINE FOR ACTIVE HIGH WAKEUP  *****/
 #define WAKEUP_TRIGGER_EDGE                 IOC_WAKE_ON_HIGH
+
+/****  USE THIS DEFINE FOR ACTIVE LOW WAKEUP  *****/
 // #define WAKEUP_TRIGGER_EDGE                 IOC_WAKE_ON_LOW
 /*---------------------------------------------------------------------------*/
 #endif /* BATTERYLESS_H_ */

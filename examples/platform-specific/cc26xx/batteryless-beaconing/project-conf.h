@@ -31,8 +31,8 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
-/* Disable button shutdown functionality */
-#define BUTTON_SENSOR_CONF_ENABLE_SHUTDOWN  0
+/* When this is defined, the application needs an EMU signal to execute */
+#define MIROCARD_BATTERLESS
 /*---------------------------------------------------------------------------*/
 /* Enable/Disable UART and system LED I/O */
 #define CC26XX_UART_CONF_ENABLE             1

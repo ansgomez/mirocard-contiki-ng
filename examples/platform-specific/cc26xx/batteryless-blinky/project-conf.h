@@ -19,9 +19,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  * Copyright (c) 2019, Swiss Federal Institute of Technology (ETH Zurich)
- * 
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,11 +53,11 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
-/* Disable button shutdown functionality */
-#define BUTTON_SENSOR_CONF_ENABLE_SHUTDOWN  0
+/* When this is defined, the application needs an EMU signal to execute */
+#define MIROCARD_BATTERLESS
 /*---------------------------------------------------------------------------*/
 /* Enable/Disable UART and system LED I/O */
-#define CC26XX_UART_CONF_ENABLE             1
+#define CC26XX_UART_CONF_ENABLE             0
 #define CC26XX_LED_CONF_ENABLE              0
 /*---------------------------------------------------------------------------*/
 /* Internal RCOSC as LF clock sufficient and initialized much faster */

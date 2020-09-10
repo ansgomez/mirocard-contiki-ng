@@ -53,11 +53,11 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
-/* Disable button shutdown functionality */
-#define BUTTON_SENSOR_CONF_ENABLE_SHUTDOWN  0
+/* When this is defined, the application needs an EMU signal to execute */
+#define MIROCARD_BATTERLESS
 /*---------------------------------------------------------------------------*/
 /* Enable/Disable UART and system LED I/O */
-#define CC26XX_UART_CONF_ENABLE             1
+#define CC26XX_UART_CONF_ENABLE             0
 #define CC26XX_LED_CONF_ENABLE              0
 /*---------------------------------------------------------------------------*/
 /* Internal RCOSC as LF clock sufficient and initialized much faster */
@@ -81,7 +81,7 @@
 #define LOG_CONF_LEVEL_6TOP                 LOG_LEVEL_NONE
 #define LOG_CONF_LEVEL_COAP                 LOG_LEVEL_NONE
 #define LOG_CONF_LEVEL_LWM2M                LOG_LEVEL_NONE
-#define LOG_CONF_LEVEL_MAIN                 LOG_LEVEL_DBG
+#define LOG_CONF_LEVEL_MAIN                 LOG_LEVEL_NONE
 /*---------------------------------------------------------------------------*/
 #endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/

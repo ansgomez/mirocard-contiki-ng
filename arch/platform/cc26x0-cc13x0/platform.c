@@ -175,7 +175,7 @@ platform_init_stage_one()
   fade(LEDS_YELLOW);
 #endif
 
-//TODO: Only for Miromico Tag
+#ifdef MIROCARD_BATTERLESS
 #pragma message("Application will run *only* with EMU Signal")
   // if not triggered by GPIO or emulated, cold start init for sleep only
   if (((uint8_t)ti_lib_sys_ctrl_reset_source_get()) != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
@@ -190,6 +190,9 @@ platform_init_stage_one()
     // lpm_shutdown(BOARD_IOID_KEY_USER, IOC_NO_IOPULL, IOC_WAKE_ON_LOW);
     /*-----------------------------------------------------------------------*/
   } 
+#else
+#pragma message("Application will run *without* the EMU")
+#endif
 
   leds_init();
 #if CC26XX_LED_CONF_ENABLE
