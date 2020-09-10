@@ -69,17 +69,12 @@ typedef struct batteryless_system_state {
   uint32_t activation_time;
 } batteryless_system_state_t;
 /*---------------------------------------------------------------------------*/
+
 /**
- * System status flags
+ * Actual size of the unaligned transient data unit structure
  */
-#define SYSTEM_STATUS_FRAM_RESTORE_ERROR    0x80
-#define SYSTEM_STATUS_FRAM_READ_ERROR       0x40
-#define SYSTEM_STATUS_FRAM_WRITE_ERROR      0x20
-#define SYSTEM_STATUS_RTC_ACCESS_ERROR      0x10
-#define SYSTEM_STATUS_RTC_CONFIG_ERROR      0x08
-#define SYSTEM_STATUS_RTC_READ_ERROR        0x04
-#define SYSTEM_STATUS_BUFFER_RESET          0x02
-#define SYSTEM_STATUS_TIMER_RESET           0x01
+#define BATTERYLESS_DATA_UNIT_SIZE    22
+
 /**
  * Invalid timestamp constant
  */

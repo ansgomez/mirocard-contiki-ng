@@ -63,8 +63,6 @@
 #include "batmon-sensor.h"
 #include "lib/sensors.h"
 
-#include "data.h"
-
 #include "transmit.h"
 /*---------------------------------------------------------------------------*/
 #define DEBUG 0
@@ -91,9 +89,6 @@ static inline void batteryless_shutdown() {
 /* ------------------------------------------------------------------------- */
 PROCESS(transient_app_process, "Transient application process");
 AUTOSTART_PROCESSES(&transient_app_process);
-/* ------------------------------------------------------------------------- */
-/* FUNCTIONS */
-/* ------------------------------------------------------------------------- */
 
 /*---------------------------------------------------------------------------*/
 /* PROCESSES */
@@ -161,9 +156,11 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   /*-------------------------------------------------------------------------*/
   /* cleanup and prepare shutdown */
 
+#ifdef MIROCARD_BATTERYLESS
   PRINTF("Shutting down\n");
   /* shutdown system for sleep */
   batteryless_shutdown();
+#endif
   /*-------------------------------------------------------------------------*/
   PROCESS_END();
 }
