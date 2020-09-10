@@ -29,6 +29,17 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
+
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#if !(CC26XX_UART_CONF_ENABLE)
+#warning "running in debug configuration while serial is NOT enabled!"
+#endif
+#else
+#define PRINTF(...)
+#endif
+
 /*---------------------------------------------------------------------------*/
 #define SHTC3_STATE_SLEEP     			0
 #define SHTC3_STATE_ACTIVE       		1
@@ -42,7 +53,7 @@ static int value(int type)
 {
   // return most negative interger on invalid type
   if (type != SHTC3_TYPE_TEMPERATURE && type != SHTC3_TYPE_HUMIDITY) {
-    printf("SHTC3: asking wrong value type\n");
+    PRINTF("SHTC3: asking wrong value type\n");
     return INT_MIN;
   }
   
@@ -56,7 +67,7 @@ static int value(int type)
       shtc3_values_updated[SHTC3_TYPE_HUMIDITY] = true;
     }
     else {
-      printf("SHTC3: Unable to read new values from I2C\n");
+      PRINTF("SHTC3: Unable to read new values from I2C\n");
     }
   }
 
@@ -87,7 +98,7 @@ enable_sensor(bool enable)
   if(enable) {
     // shtc3_wakeup(NULL);
     shtc3_init(NULL);
-    printf("Enabled SHT\n");
+    PRINTF("Enabled SHT\n");
 
     /* Writing CONFIG_ENABLE_SINGLE_SHOT to M bits will clear CRF bits */
     shtc3_state = SHTC3_STATE_ACTIVE;
@@ -95,7 +106,7 @@ enable_sensor(bool enable)
     /* Writing CONFIG_DISABLE to M bits will not clear CRF bits */
     shtc3_state = SHTC3_STATE_SLEEP | had_data_ready;
     shtc3_sleep(NULL);
-    printf("Disabled SHT\n");
+    PRINTF("Disabled SHT\n");
   }
 
 }
