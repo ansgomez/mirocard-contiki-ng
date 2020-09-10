@@ -148,6 +148,7 @@ configure_unused_pins(void)
   for(pin = pins; *pin != IOID_UNUSED; pin++) {
     ti_lib_ioc_pin_type_gpio_input(*pin);
     ti_lib_ioc_io_port_pull_set(*pin, IOC_IOPULL_DOWN);
+    // ti_lib_ioc_io_port_pull_set(*pin, IOC_NO_IOPULL);
   }
 }
 /*---------------------------------------------------------------------------*/
