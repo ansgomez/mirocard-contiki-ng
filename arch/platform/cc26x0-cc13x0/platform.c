@@ -175,7 +175,7 @@ platform_init_stage_one()
   fade(LEDS_YELLOW);
 #endif
 
-#ifdef MIROCARD_BATTERLESS
+#ifdef MIROCARD_BATTERYLESS
 #pragma message("Application will run *only* with EMU Signal")
   // if not triggered by GPIO or emulated, cold start init for sleep only
   if (((uint8_t)ti_lib_sys_ctrl_reset_source_get()) != RSTSRC_WAKEUP_FROM_SHUTDOWN) {

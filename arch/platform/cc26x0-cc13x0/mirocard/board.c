@@ -92,12 +92,17 @@ board_gpio_shutdown(void)
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_GPIO_4, IOC_IOPULL_DOWN);
 
   //LEDS: 
+#ifdef MIROCARD_BATTERYLESS
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_LED_1);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_LED_1, IOC_IOPULL_UP);
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_LED_2);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_LED_2, IOC_IOPULL_UP);
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_LED_3);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_LED_3, IOC_IOPULL_UP);
+#else 
+#pragma message "ALLOWING LEDS TO BE ON DURING SLEEP"
+#warning "NOT LOW POWER"
+#endif
 }
 /*---------------------------------------------------------------------------*/
 static void

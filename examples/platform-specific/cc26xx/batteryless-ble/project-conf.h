@@ -53,7 +53,7 @@
 #define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
 /* When this is defined, the application needs an EMU signal to execute */
-#define MIROCARD_BATTERLESS
+#define MIROCARD_BATTERYLESS
 /*---------------------------------------------------------------------------*/
 /* Enable/Disable UART and system LED I/O */
 #define CC26XX_UART_CONF_ENABLE             0
