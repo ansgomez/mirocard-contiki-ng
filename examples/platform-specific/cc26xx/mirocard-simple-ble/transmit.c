@@ -99,30 +99,20 @@ AUTOSTART_PROCESSES(&transient_app_process);
 /* PROCESSES */
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(transient_app_process, ev, data) {
-  static batteryless_system_state_t system_state_old;
-  static batteryless_system_state_t system_state;
-  static batteryless_data_unit_t data_buffer;
   static uint8_t ble_payload[BLE_ADV_MAX_SIZE];
-  static uint32_t timestamp;
-  static int accel[3];
-  static uint16_t light;
+  static uint8_t state;
   /*-------------------------------------------------------------------------*/
   PROCESS_BEGIN();
   /*-------------------------------------------------------------------------*/
-  // GPIO CONFIG 1
-  ti_lib_gpio_set_dio(BOARD_IOID_GPIO_1);
-  /*-------------------------------------------------------------------------*/
   // check reset source for power on reset and clear flags
-  system_state.reset_source = ti_lib_sys_ctrl_reset_source_get();
-  PRINTF("Reset source: 0x%x\n", (uint8_t)system_state.reset_source);
+  state = ti_lib_sys_ctrl_reset_source_get();
+  PRINTF("Reset source: 0x%x\n", (uint8_t)state);
 
 #ifdef MIROCARD_BATTERYLESS
   // if not triggered by GPIO or emulated, cold start init for sleep only
-  if (system_state.reset_source != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
+  if (state!= RSTSRC_WAKEUP_FROM_SHUTDOWN) {
     /*-----------------------------------------------------------------------*/
     PRINTF("Going to sleep waiting for trigger\n");
-    // GPIO CONFIG 1-a
-    ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
     /*-----------------------------------------------------------------------*/
     /* cold start init for sleep only */
     batteryless_shutdown();
@@ -130,85 +120,8 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   } else {
     /* wakeup from LPM on GPIO trigger, do initialize for execution */
     PRINTF("Woken up to perform a task\n");
-    // reset default system state and task id
-    system_state.status = 0x00;
-    system_state.task_id = 0;
   }
 #endif
-
-  /*-------------------------------------------------------------------------*/
-  // GPIO CONFIG 1+2
-  ti_lib_gpio_set_dio(BOARD_IOID_GPIO_2);
-  /*-------------------------------------------------------------------------*/
-
-  // set task_id counter
-  system_state.task_id = system_state_old.task_id + 1;
-
-  /*-------------------------------------------------------------------------*/
-  // GPIO CONFIG 1+2+3
-  ti_lib_gpio_set_dio(BOARD_IOID_GPIO_3);
-  /*-------------------------------------------------------------------------*/
-
-  /*-------------------------------------------------------------------------*/
-  /* Time based system state updates */
-
-  // store (potentially invalid) timestamp in system state
-  system_state.activation_time = clock_time()/CLOCK_SECOND;
-
-  // check wether timer was reset since last system activation
-  if (system_state.activation_time < system_state_old.activation_time) {
-    system_state.status |= SYSTEM_STATUS_TIMER_RESET;
-  }
-
-  // estimate the power level from the timer value
-  if (system_state.status & SYSTEM_STATUS_TIMER_RESET) {
-    // no valid time for last activation (clock reset): estimate lowest power
-    system_state.power_level = 0;
-  } else {
-    uint32_t activation_interval = system_state.activation_time - 
-                                   system_state_old.activation_time;
-    //TODO: policy_estimate_power_level(activation_interval);
-    system_state.power_level =  activation_interval;
-  }
-
-  /*-------------------------------------------------------------------------*/
-  // GPIO CONFIG 1+3
-  ti_lib_gpio_clear_dio(BOARD_IOID_GPIO_2);
-  /*-------------------------------------------------------------------------*/
-  /* Sensor readout */
-   timestamp = clock_time();
-
-  // print read sensor values
-  // PRINTF("SHT31:  TEMP = % 5d [degC x 100]\n", temperature);
-  // PRINTF("SHT31:  RH   = % 5d [%% x 100]\n", humidity);
-
-  /*-------------------------------------------------------------------------*/
-  // GPIO CONFIG 3
-  ti_lib_gpio_clear_dio(BOARD_IOID_GPIO_1);
-  /*-------------------------------------------------------------------------*/
-
-  /*-------------------------------------------------------------------------*/
-  // GPIO CONFIG 2+3
-  ti_lib_gpio_set_dio(BOARD_IOID_GPIO_2);
-  /*-------------------------------------------------------------------------*/
-  /* assemble data packet */
-  data_buffer.time = timestamp;
-  data_buffer.data[0] = 0xAB;
-  data_buffer.data[1] = 0xCD;
-  data_buffer.data[2] = 0xEF;
-   
-#if DEBUG
-  PRINTF("sample:  ");
-  for (uint16_t i = 0; i < BATTERYLESS_DATA_UNIT_SIZE; i++) {
-    PRINTF("%5u ", data_buffer.bytes[i]);
-  }
-  PRINTF("\n");
-#endif
-
-  /*-------------------------------------------------------------------------*/
-  // GPIO CONFIG 2
-  ti_lib_gpio_clear_dio(BOARD_IOID_GPIO_3);
-  /*-------------------------------------------------------------------------*/
 
   /*
    * Assemble manufacturer specific BLE beacon payload, see README.md for
@@ -216,15 +129,10 @@ PROCESS_THREAD(transient_app_process, ev, data) {
    */
   uint8_t ble_payload_size = 1; // setting payload size field at the end
   ble_payload[ble_payload_size++] = BLE_ADV_TYPE_MANUFACTURER;
-  ble_payload[ble_payload_size++] = system_state.status;
-  // add data units up to full packet size
-  // while (ble_payload_size + BATTERYLESS_DATA_UNIT_SIZE <= BLE_ADV_MAX_SIZE ) {
-    uint8_t* data_bytes = (uint8_t*)&data_buffer;
-    for (uint8_t i = 0; i < BATTERYLESS_DATA_UNIT_SIZE; i++) {
-      // ble_payload[ble_payload_size++] = data_bytes[i];
-      ble_payload[ble_payload_size++] = i-6;
-    }
-  // }
+  ble_payload[ble_payload_size++] = state;
+  for (uint8_t i = 0; i < BATTERYLESS_DATA_UNIT_SIZE; i++) {
+    ble_payload[ble_payload_size++] = i-6;
+  }
   // update payload size field (data length byte not counted)
   ble_payload[0] = ble_payload_size - 1;
 
@@ -242,9 +150,6 @@ PROCESS_THREAD(transient_app_process, ev, data) {
 #endif
 
   /*-------------------------------------------------------------------------*/
-  // GPIO CONFIG 2+4
-  ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
-  /*-------------------------------------------------------------------------*/
   /* BLE packet transmission */
 
   // init RF core APIs and configure TX power
@@ -253,10 +158,6 @@ PROCESS_THREAD(transient_app_process, ev, data) {
 
   // transmit BLE beacon
   rf_ble_beacon_single(BLE_ADV_CHANNEL_ALL, ble_payload, ble_payload_size);
-
-  /*-------------------------------------------------------------------------*/
-  // GPIO CONFIG 2+3+4
-  ti_lib_gpio_set_dio(BOARD_IOID_GPIO_3);
   /*-------------------------------------------------------------------------*/
   /* cleanup and prepare shutdown */
 
