@@ -106,9 +106,6 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   static uint32_t timestamp;
   static int accel[3];
   static uint16_t light;
-  // static int temperature;
-  // static int humidity;
-  // static bool ret;
   /*-------------------------------------------------------------------------*/
   PROCESS_BEGIN();
   /*-------------------------------------------------------------------------*/
@@ -119,23 +116,25 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   system_state.reset_source = ti_lib_sys_ctrl_reset_source_get();
   PRINTF("Reset source: 0x%x\n", (uint8_t)system_state.reset_source);
 
-  // // if not triggered by GPIO or emulated, cold start init for sleep only
-  // if (system_state.reset_source != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
-  //   /*-----------------------------------------------------------------------*/
-  //   PRINTF("Going to sleep waiting for trigger\n");
-  //   // GPIO CONFIG 1-a
-  //   ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
-  //   /*-----------------------------------------------------------------------*/
-  //   /* cold start init for sleep only */
-  //   batteryless_shutdown();
-  //   /*-----------------------------------------------------------------------*/
-  // } else {
-  //   /* wakeup from LPM on GPIO trigger, do initialize for execution */
-  //   PRINTF("Woken up to perform a task\n");
-  //   // reset default system state and task id
-  //   system_state.status = 0x00;
-  //   system_state.task_id = 0;
-  // }
+#ifdef MIROCARD_BATTERYLESS
+  // if not triggered by GPIO or emulated, cold start init for sleep only
+  if (system_state.reset_source != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
+    /*-----------------------------------------------------------------------*/
+    PRINTF("Going to sleep waiting for trigger\n");
+    // GPIO CONFIG 1-a
+    ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
+    /*-----------------------------------------------------------------------*/
+    /* cold start init for sleep only */
+    batteryless_shutdown();
+    /*-----------------------------------------------------------------------*/
+  } else {
+    /* wakeup from LPM on GPIO trigger, do initialize for execution */
+    PRINTF("Woken up to perform a task\n");
+    // reset default system state and task id
+    system_state.status = 0x00;
+    system_state.task_id = 0;
+  }
+#endif
 
   /*-------------------------------------------------------------------------*/
   // GPIO CONFIG 1+2
