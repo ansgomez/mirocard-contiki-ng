@@ -99,7 +99,7 @@
 #define CC26XX_DEMO_LEDS_BUTTON         LEDS_BLUE
 #define CC26XX_DEMO_LEDS_REBOOT         LEDS_ALL
 /*---------------------------------------------------------------------------*/
-#if BOARD_BATTERYLESS || BOARD_TRANSIENT
+#if BOARD_MIROCARD
 #define CC26XX_DEMO_TRIGGER_1     BOARD_BUTTON_HAL_INDEX_KEY_USER
 #define CC26XX_DEMO_TRIGGER_2     BOARD_BUTTON_HAL_INDEX_KEY_USER
 #else

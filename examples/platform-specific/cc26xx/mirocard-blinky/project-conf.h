@@ -54,11 +54,12 @@
 #define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
 /* When this is defined, the application needs an EMU signal to execute */
-#define MIROCARD_BATTERLESS
+// #define MIROCARD_BATTERYLESS
+#define WATCHDOG_CONF_DISABLE 1
 /*---------------------------------------------------------------------------*/
 /* Enable/Disable UART and system LED I/O */
-#define CC26XX_UART_CONF_ENABLE             0
-#define CC26XX_LED_CONF_ENABLE              0
+#define CC26XX_UART_CONF_ENABLE             1
+#define CC26XX_LED_CONF_ENABLE              1
 /*---------------------------------------------------------------------------*/
 /* Internal RCOSC as LF clock sufficient and initialized much faster */
 #define CC26XX_CLOCK_CONF_USE_LF_RCOSC      1
