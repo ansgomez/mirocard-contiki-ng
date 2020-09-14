@@ -95,7 +95,7 @@
  * PIN configuration for the use of external state indicator pins
  * @{
  */
-#define BOARD_IOID_GPIO_1         IOID_12
+#define BOARD_IOID_GPIO_1         IOID_7
 #define BOARD_IOID_GPIO_2         IOID_13
 #define BOARD_IOID_GPIO_3         IOID_14
 #define BOARD_IOID_GPIO_4         IOID_15
