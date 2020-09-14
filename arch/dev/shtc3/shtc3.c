@@ -38,40 +38,6 @@
 #define LOG_MODULE                    "shtc3"
 #define LOG_LEVEL                     LOG_LEVEL_NONE
 /*---------------------------------------------------------------------------*/
-#ifndef SHTC3_I2C_CONTROLLER
-
-#define SHTC3_I2C_CONTROLLER          0xFF /* No controller */
-
-#define SHTC3_I2C_PIN_SCL             GPIO_HAL_PIN_UNKNOWN
-#define SHTC3_I2C_PIN_SDA             GPIO_HAL_PIN_UNKNOWN
-
-#define SHTC3_I2C_ADDRESS             0x70
-
-#endif /* SHTC3_I2C_CONTROLLER */
-/*---------------------------------------------------------------------------*/
-// single shot commands
-#if SHTC3_USE_CLOCKSTRETCH
-#define SHTC3_CODE_SINGLE_HIGH        0x7CA2
-#define SHTC3_CODE_SINGLE_LOW         0x6458
-// #define SHTC3_CODE_SINGLE_LOW         0x5C24
-#else
-#define SHTC3_CODE_SINGLE_HIGH        0x7866
-#define SHTC3_CODE_SINGLE_LOW         0x609C
-// #define SHTC3_CODE_SINGLE_LOW         0x58E0
-#endif
-/*---------------------------------------------------------------------------*/
-// general commands
-#define SHTC3_CODE_SLEEP              0xB098
-#define SHTC3_CODE_WAKEUP             0x3517
-#define SHTC3_CODE_READ_ID            0xEFC8
-#define SHTC3_CODE_SOFT_RESET         0x805D
-//to be updated?
-#define SHTC3_CODE_STATUS             0xF32D 
-//to be updated?
-#define SHTC3_CODE_CLEAR_STATUS       0x3041
-/*---------------------------------------------------------------------------*/
-#define SHTC3_READ_RETRY_ITERATIONS   50
-/*---------------------------------------------------------------------------*/
 int32_t
 shtc3_convert_temperature(uint16_t raw)
 {
@@ -93,7 +59,7 @@ select_on_bus(void *conf)
 {
   // select sensor slave
   LOG_DBG("I2C select (0x%02x)\n", SHTC3_I2C_ADDRESS);
-  board_i2c_select(BOARD_I2C_INTERFACE_0, SHTC3_I2C_ADDRESS);
+  board_i2c_select(SHTC3_INTERFACE, SHTC3_I2C_ADDRESS);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -189,6 +155,7 @@ shtc3_read_values(void *conf, shtc3_repeatability_t repeatability,
   // request status
   ret = shtc3_write(conf, cmd);
   if (!ret) {
+    printf("Unable to write\n");
     return ret;
   }
 

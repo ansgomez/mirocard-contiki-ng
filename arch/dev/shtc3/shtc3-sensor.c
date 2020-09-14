@@ -40,6 +40,10 @@
 #define PRINTF(...)
 #endif
 
+/* Sensor selection/deselection */
+#define SENSOR_SELECT()     board_i2c_select(BOARD_I2C_INTERFACE_1, SHTC3_I2C_ADDRESS)
+#define SENSOR_DESELECT()   board_i2c_deselect()
+
 /*---------------------------------------------------------------------------*/
 #define SHTC3_STATE_SLEEP     			0
 #define SHTC3_STATE_ACTIVE       		1
