@@ -99,6 +99,12 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   /*-------------------------------------------------------------------------*/
   PROCESS_BEGIN();
   /*-------------------------------------------------------------------------*/
+
+  /*-------------------------------------------------------------------------*/
+  // GPIO CONFIG 1 - Start of Activation
+  ti_lib_gpio_set_dio(BOARD_IOID_GPIO_1);
+  /*-------------------------------------------------------------------------*/
+
   // check reset source for power on reset and clear flags
   state = ti_lib_sys_ctrl_reset_source_get();
   PRINTF("Reset source: 0x%x\n", (uint8_t)state);
@@ -151,10 +157,22 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   rf_core_set_modesel();
   rf_ble_set_tx_power(BLE_RF_TX_POWER);
 
+ /*-------------------------------------------------------------------------*/
+  // GPIO CONFIG 2 - Start of Transmission
+  ti_lib_gpio_set_dio(BOARD_IOID_GPIO_2);
+  /*-------------------------------------------------------------------------*/
+
   // transmit BLE beacon
   rf_ble_beacon_single(BLE_ADV_CHANNEL_ALL, ble_payload, ble_payload_size);
   /*-------------------------------------------------------------------------*/
   /* cleanup and prepare shutdown */
+
+
+  /*-------------------------------------------------------------------------*/
+  // GPIO CONFIG 1/2 - End of Activation and Transmission
+  ti_lib_gpio_clear_dio(BOARD_IOID_GPIO_1);
+  ti_lib_gpio_clear_dio(BOARD_IOID_GPIO_2);
+  /*-------------------------------------------------------------------------*/
 
 #ifdef MIROCARD_BATTERYLESS
   PRINTF("Shutting down\n");
