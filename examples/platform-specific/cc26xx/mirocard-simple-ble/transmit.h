@@ -95,8 +95,8 @@ typedef struct batteryless_system_state {
 /****  EMU COMPARATOR IS ACTIVE LOW  *****/
 #define WAKEUP_TRIGGER_IOID                 BOARD_IOID_EMU_COMP
 
-/****  LED PIN IS ACTIVE LOW  *****/
-// #define WAKEUP_TRIGGER_IOID               BOARD_IOID_LED_1
+/****  GPIO PIN IS ACTIVE LOW  *****/
+// #define WAKEUP_TRIGGER_IOID               BOARD_IOID_GPIO_3
 
 /****  USER SWITCH IS ACTIVE LOW  *****/
 // #define WAKEUP_TRIGGER_IOID               BOARD_IOID_KEY_USER 
