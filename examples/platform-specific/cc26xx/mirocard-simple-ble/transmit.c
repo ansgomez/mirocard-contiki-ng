@@ -100,11 +100,6 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   PROCESS_BEGIN();
   /*-------------------------------------------------------------------------*/
 
-  /*-------------------------------------------------------------------------*/
-  // GPIO CONFIG 1 - Start of Activation
-  ti_lib_gpio_set_dio(BOARD_IOID_GPIO_1);
-  /*-------------------------------------------------------------------------*/
-
   // check reset source for power on reset and clear flags
   state = ti_lib_sys_ctrl_reset_source_get();
   PRINTF("Reset source: 0x%x\n", (uint8_t)state);
@@ -170,7 +165,7 @@ PROCESS_THREAD(transient_app_process, ev, data) {
 
   /*-------------------------------------------------------------------------*/
   // GPIO CONFIG 1/2 - End of Activation and Transmission
-  ti_lib_gpio_clear_dio(BOARD_IOID_GPIO_1);
+  ti_lib_gpio_clear_dio(BOARD_IOID_GPIO_1); //This GPIO was set in platform.c
   ti_lib_gpio_clear_dio(BOARD_IOID_GPIO_2);
   /*-------------------------------------------------------------------------*/
 

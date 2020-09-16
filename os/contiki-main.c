@@ -81,12 +81,13 @@ main(void)
   process_init();
   process_start(&etimer_process, NULL);
   ctimer_init();
+  
 #ifdef BOARD_MIROCARD
-#pragma "MiroCard does not use WDT"
+#pragma "MiroCard does not use WDT nor energest"
 #else
   watchdog_init();
-#endif
   energest_init();
+#endif
 
 #if STACK_CHECK_ENABLED
   stack_check_init();

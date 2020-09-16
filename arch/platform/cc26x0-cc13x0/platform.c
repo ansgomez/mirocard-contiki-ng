@@ -169,25 +169,26 @@ platform_init_stage_one()
 
   ti_lib_int_enable(INT_AON_GPIO_EDGE);
   ti_lib_int_master_enable();
-
+  
   soc_rtc_init();
+
 #if CC26XX_LED_CONF_ENABLE
   fade(LEDS_YELLOW);
 #endif
 
 #ifdef MIROCARD_BATTERYLESS
 #pragma message("Application will run *only* with EMU Signal")
+  /*-----------------------------------------------------------------------*/
+  // GPIO CONFIG 1-a
+  ti_lib_gpio_set_dio(BOARD_IOID_GPIO_1);
+/*-----------------------------------------------------------------------*/
   // if not triggered by GPIO or emulated, cold start init for sleep only
   if (((uint8_t)ti_lib_sys_ctrl_reset_source_get()) != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
-    /*-----------------------------------------------------------------------*/
-    // GPIO CONFIG 1-a
-    // ti_lib_gpio_set_dio(BOARD_IOID_GPIO_4);
-    /*-----------------------------------------------------------------------*/
-    /* cold start init for sleep only */
+    /* Insert GPIO tracing here to detect when cold start happend */
     // LPM with GPIO triggered wakeup
     //TODO: Create _CONF paramaters
-    lpm_shutdown(BOARD_IOID_EMU_COMP, IOC_NO_IOPULL, IOC_WAKE_ON_HIGH);
-    // lpm_shutdown(BOARD_IOID_KEY_USER, IOC_NO_IOPULL, IOC_WAKE_ON_LOW);
+    // lpm_shutdown(BOARD_IOID_EMU_COMP, IOC_NO_IOPULL, IOC_WAKE_ON_HIGH);
+    lpm_shutdown(BOARD_IOID_GPIO_3, IOC_NO_IOPULL, IOC_WAKE_ON_LOW);
     /*-----------------------------------------------------------------------*/
   } 
 #else
@@ -208,9 +209,8 @@ platform_init_stage_two()
   /* Character I/O Initialisation */
 #if CC26XX_UART_CONF_ENABLE
   cc26xx_uart_init();
-#endif
-
   serial_line_init();
+#endif
 
 #if BUILD_WITH_SHELL
   cc26xx_uart_set_input(serial_line_input_byte);
@@ -257,8 +257,10 @@ platform_init_stage_three()
   }
   LOG_INFO_("\n");
 
+#ifndef MIROCARD_BATTERYLESS
 #if BOARD_HAS_SENSORS
   process_start(&sensors_process, NULL);
+#endif
 #endif
 
 #if CC26XX_LED_CONF_ENABLE
