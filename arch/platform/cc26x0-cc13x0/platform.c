@@ -179,16 +179,17 @@ platform_init_stage_one()
 #ifdef MIROCARD_BATTERYLESS
 #pragma message("Application will run *only* with EMU Signal")
   /*-----------------------------------------------------------------------*/
-  // GPIO CONFIG 1-a
+  // GPIO tracing: device woke up
+#ifdef MIROCARD_GPIO_TRACING
   ti_lib_gpio_set_dio(BOARD_IOID_GPIO_1);
+#endif
 /*-----------------------------------------------------------------------*/
   // if not triggered by GPIO or emulated, cold start init for sleep only
   if (((uint8_t)ti_lib_sys_ctrl_reset_source_get()) != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
     /* Insert GPIO tracing here to detect when cold start happend */
     // LPM with GPIO triggered wakeup
-    //TODO: Create _CONF paramaters
-    // lpm_shutdown(BOARD_IOID_EMU_COMP, IOC_NO_IOPULL, IOC_WAKE_ON_HIGH);
-    lpm_shutdown(BOARD_IOID_GPIO_3, IOC_NO_IOPULL, IOC_WAKE_ON_LOW);
+    //WAKE_UP_TRIGGER and TRIGGER_EDGE should be defined in the project_conf.h file
+    lpm_shutdown(WAKEUP_TRIGGER_IOID, IOC_NO_IOPULL, WAKEUP_TRIGGER_EDGE);
     /*-----------------------------------------------------------------------*/
   } 
 #else

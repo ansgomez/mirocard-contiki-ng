@@ -55,6 +55,30 @@
 /*---------------------------------------------------------------------------*/
 /* When this is defined, the application needs an EMU signal to execute */
 #define MIROCARD_BATTERYLESS
+
+/* When this is defined, GPIO's are used in application for tracing */
+#def MIROCARD_GPIO_TRACING
+/*---------------------------------------------------------------------------*/
+/**
+ * GPIO used as as wakeup trigger (EMU_TRIG or LED_GPIO for testing)
+ */
+/****  USE THIS DEFINE FOR EMU COMPARATOR (ACTIVE HIGH)  *****/
+// #define WAKEUP_TRIGGER_IOID                 BOARD_IOID_EMU_COMP
+
+/****  USE THIS DEFINE FOR EMU COMPARATOR (ACTIVE HIGH) GPIO PIN (ACTIVE HIGH)  *****/
+#define WAKEUP_TRIGGER_IOID               BOARD_IOID_GPIO_3
+
+/****  USE THIS DEFINE FOR USER SWITCH (ACTIVE LOW)  *****/
+// #define WAKEUP_TRIGGER_IOID               BOARD_IOID_KEY_USER 
+/*---------------------------------------------------------------------------*/
+/**
+ * GPIO trigger edge (IOC_WAKE_ON_HIGH or IOC_WAKE_ON_LOW for testing)
+ */
+/****  USE THIS DEFINE FOR ACTIVE HIGH WAKEUP  *****/
+#define WAKEUP_TRIGGER_EDGE                 IOC_WAKE_ON_HIGH
+
+/****  USE THIS DEFINE FOR ACTIVE LOW WAKEUP  *****/
+// #define WAKEUP_TRIGGER_EDGE                 IOC_WAKE_ON_LOW
 /*---------------------------------------------------------------------------*/
 /* Enable/Disable UART and system LED I/O */
 #define CC26XX_UART_CONF_ENABLE             0

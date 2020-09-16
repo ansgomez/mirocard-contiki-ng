@@ -89,25 +89,5 @@ typedef struct batteryless_system_state {
  */
 #define BLE_RF_TX_POWER                     -21
 /*---------------------------------------------------------------------------*/
-/**
- * GPIO used as as wakeup trigger (EMU_TRIG or LED_GPIO for testing)
- */
-/****  EMU COMPARATOR IS ACTIVE LOW  *****/
-#define WAKEUP_TRIGGER_IOID                 BOARD_IOID_EMU_COMP
-
-/****  GPIO PIN IS ACTIVE LOW  *****/
-// #define WAKEUP_TRIGGER_IOID               BOARD_IOID_GPIO_3
-
-/****  USER SWITCH IS ACTIVE LOW  *****/
-// #define WAKEUP_TRIGGER_IOID               BOARD_IOID_KEY_USER 
-/**
- * GPIO trigger edge (IOC_WAKE_ON_HIGH or IOC_WAKE_ON_LOW for parallel testing)
- */
-/****  USE THIS DEFINE FOR ACTIVE HIGH WAKEUP  *****/
-#define WAKEUP_TRIGGER_EDGE                 IOC_WAKE_ON_HIGH
-
-/****  USE THIS DEFINE FOR ACTIVE LOW WAKEUP  *****/
-// #define WAKEUP_TRIGGER_EDGE                 IOC_WAKE_ON_LOW
-/*---------------------------------------------------------------------------*/
 #endif /* BATTERYLESS_H_ */
 /*---------------------------------------------------------------------------*/

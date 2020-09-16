@@ -154,7 +154,9 @@ PROCESS_THREAD(transient_app_process, ev, data) {
 
  /*-------------------------------------------------------------------------*/
   // GPIO CONFIG 2 - Start of Transmission
+#ifdef MIROCARD_GPIO_TRACING  
   ti_lib_gpio_set_dio(BOARD_IOID_GPIO_2);
+#endif
   /*-------------------------------------------------------------------------*/
 
   // transmit BLE beacon
@@ -165,8 +167,10 @@ PROCESS_THREAD(transient_app_process, ev, data) {
 
   /*-------------------------------------------------------------------------*/
   // GPIO CONFIG 1/2 - End of Activation and Transmission
+#ifdef MIROCARD_GPIO_TRACING
   ti_lib_gpio_clear_dio(BOARD_IOID_GPIO_1); //This GPIO was set in platform.c
   ti_lib_gpio_clear_dio(BOARD_IOID_GPIO_2);
+#endif
   /*-------------------------------------------------------------------------*/
 
 #ifdef MIROCARD_BATTERYLESS
