@@ -192,9 +192,9 @@ platform_init_stage_one()
   } 
 #else
 #pragma message("Application will run *without* the EMU")
+leds_init();
 #endif
 
-  leds_init();
 #if CC26XX_LED_CONF_ENABLE
   fade(LEDS_RED);
 #endif
