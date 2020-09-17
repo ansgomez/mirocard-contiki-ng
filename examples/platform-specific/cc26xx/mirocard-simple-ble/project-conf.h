@@ -57,16 +57,16 @@
 #define MIROCARD_BATTERYLESS
 
 /* When this is defined, GPIO's are used in application for tracing */
-#def MIROCARD_GPIO_TRACING
+#define MIROCARD_GPIO_TRACING
 /*---------------------------------------------------------------------------*/
 /**
  * GPIO used as as wakeup trigger (EMU_TRIG or LED_GPIO for testing)
  */
 /****  USE THIS DEFINE FOR EMU COMPARATOR (ACTIVE HIGH)  *****/
-// #define WAKEUP_TRIGGER_IOID                 BOARD_IOID_EMU_COMP
+#define WAKEUP_TRIGGER_IOID                 BOARD_IOID_EMU_COMP
 
 /****  USE THIS DEFINE FOR EMU COMPARATOR (ACTIVE HIGH) GPIO PIN (ACTIVE HIGH)  *****/
-#define WAKEUP_TRIGGER_IOID               BOARD_IOID_GPIO_3
+// #define WAKEUP_TRIGGER_IOID               BOARD_IOID_GPIO_3
 
 /****  USE THIS DEFINE FOR USER SWITCH (ACTIVE LOW)  *****/
 // #define WAKEUP_TRIGGER_IOID               BOARD_IOID_KEY_USER 
