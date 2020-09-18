@@ -53,6 +53,8 @@ static void
 board_gpio_shutdown(void)
 {
   //SENSORS 
+  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_MPU_POWER);
+  ti_lib_gpio_clear_dio(BOARD_IOID_MPU_POWER);
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_MPU_INT);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_MPU_INT, IOC_NO_IOPULL);
   //TODO: Hall Sensor
@@ -69,12 +71,17 @@ board_gpio_shutdown(void)
 
   /* configure communication interface pin states for shutdown */
   // I2C bus pin configuration for shutdown
-  //I2C1
+  //I2C1 (Temp/RH/Light sensor) -> Vdd is same as MCU (always high)
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C_SCL);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C_SCL, IOC_IOPULL_UP);
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C_SDA);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C_SDA, IOC_IOPULL_UP);
-  
+  //I2C2 (MPU) -> Vdd is a GPIO. When off, pull to GND
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C2_SDA_HP);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C2_SDA_HP, IOC_IOPULL_DOWN);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C2_SCL_HP);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C2_SCL_HP, IOC_IOPULL_DOWN);
+
   // UART pin configuration for shutdown
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_UART_RX);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_UART_RX, IOC_IOPULL_DOWN);
@@ -90,6 +97,9 @@ board_gpio_shutdown(void)
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_GPIO_3, IOC_IOPULL_DOWN);
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_GPIO_4);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_GPIO_4, IOC_IOPULL_DOWN);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_KEY_USER);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_KEY_USER, IOC_IOPULL_UP);
+  
 
   /* LEDS:  */
 #ifdef MIROCARD_BATTERYLESS

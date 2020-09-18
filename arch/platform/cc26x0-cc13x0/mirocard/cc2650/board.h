@@ -220,7 +220,7 @@
  * \name Device string used on startup
  * @{
  */
-#define BOARD_STRING "TI CC2650 Batteryless"
+#define BOARD_STRING "MiroCard Board"
 
 /** @} */
 /*---------------------------------------------------------------------------*/
