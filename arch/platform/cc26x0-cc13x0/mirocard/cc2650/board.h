@@ -178,17 +178,17 @@
 //  * The remaining values are not meant to be modified by the user
 //  * @{
 //  */
-// #if ROM_BOOTLOADER_ENABLE
-// #define SET_CCFG_BL_CONFIG_BOOTLOADER_ENABLE            0xC5
-// #define SET_CCFG_BL_CONFIG_BL_LEVEL                     0x00
-// #define SET_CCFG_BL_CONFIG_BL_PIN_NUMBER                BOARD_IOID_KEY_USER
-// #define SET_CCFG_BL_CONFIG_BL_ENABLE                    0xC5
-// #else
-// #define SET_CCFG_BL_CONFIG_BOOTLOADER_ENABLE            0x00
-// #define SET_CCFG_BL_CONFIG_BL_LEVEL                     0x01
-// #define SET_CCFG_BL_CONFIG_BL_PIN_NUMBER                0xFF
-// #define SET_CCFG_BL_CONFIG_BL_ENABLE                    0xFF
-// #endif
+#if ROM_BOOTLOADER_ENABLE
+#define SET_CCFG_BL_CONFIG_BOOTLOADER_ENABLE            0xC5
+#define SET_CCFG_BL_CONFIG_BL_LEVEL                     0x00
+#define SET_CCFG_BL_CONFIG_BL_PIN_NUMBER                BOARD_IOID_KEY_USER
+#define SET_CCFG_BL_CONFIG_BL_ENABLE                    0xC5
+#else
+#define SET_CCFG_BL_CONFIG_BOOTLOADER_ENABLE            0x00
+#define SET_CCFG_BL_CONFIG_BL_LEVEL                     0x01
+#define SET_CCFG_BL_CONFIG_BL_PIN_NUMBER                0xFF
+#define SET_CCFG_BL_CONFIG_BL_ENABLE                    0xFF
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
