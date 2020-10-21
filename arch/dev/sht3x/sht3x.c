@@ -107,7 +107,7 @@ select_on_bus(void *conf)
 {
   // select sensor slave
   LOG_DBG("I2C select (0x%02x)\n", SHT3X_I2C_ADDRESS);
-  board_i2c_select(SHT3X_I2C_ADDRESS);
+  board_i2c_select(BOARD_I2C_INTERFACE_0, SHT3X_I2C_ADDRESS);
 }
 /*---------------------------------------------------------------------------*/
 static void

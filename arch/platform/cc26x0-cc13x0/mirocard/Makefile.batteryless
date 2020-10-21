@@ -7,7 +7,8 @@ BOARD_SOURCEFILES += batteryless-sensors.c board-buttons.c sensor-common.c
 BOARD_SOURCEFILES += opt-3001-sensor.c mpu-9250-sensor.c
 BOARD_SOURCEFILES += board.c board-i2c.c
 
-MODULES += arch/dev/shtc3
+MODULES += arch/dev/sht3x
 
 ### Signal that we can be programmed with cc2538-bsl
+
 BOARD_SUPPORTS_BSL = 1

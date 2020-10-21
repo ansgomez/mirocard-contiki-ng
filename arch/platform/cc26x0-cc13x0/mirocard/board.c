@@ -133,7 +133,7 @@ shutdown_handler(uint8_t mode)
   if(mode == LPM_MODE_SHUTDOWN) {
     SENSORS_DEACTIVATE(opt_3001_sensor);
     SENSORS_DEACTIVATE(mpu_9250_sensor);
-    SENSORS_DEACTIVATE(shtc3_sensor);
+    SENSORS_DEACTIVATE(sht3x_sensor);
     ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_MPU_POWER);
     ti_lib_gpio_clear_dio(BOARD_IOID_MPU_POWER);
   }

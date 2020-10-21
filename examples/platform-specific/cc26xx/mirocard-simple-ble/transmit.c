@@ -84,7 +84,8 @@
 static inline void batteryless_shutdown() {
 
   // LPM with GPIO triggered wakeup
-  lpm_shutdown(WAKEUP_TRIGGER_IOID, IOC_NO_IOPULL, WAKEUP_TRIGGER_EDGE);
+  // lpm_shutdown(WAKEUP_TRIGGER_IOID, IOC_NO_IOPULL, WAKEUP_TRIGGER_EDGE);
+  lpm_shutdown(WAKEUP_TRIGGER_IOID, IOC_IOPULL_UP, WAKEUP_TRIGGER_EDGE);
 }
 /* ------------------------------------------------------------------------- */
 PROCESS(transient_app_process, "Transient application process");
@@ -96,6 +97,8 @@ AUTOSTART_PROCESSES(&transient_app_process);
 PROCESS_THREAD(transient_app_process, ev, data) {
   static uint8_t ble_payload[BLE_ADV_MAX_SIZE];
   static uint8_t state;
+  static int temperature;
+  static int humidity;
   /*-------------------------------------------------------------------------*/
   PROCESS_BEGIN();
   /*-------------------------------------------------------------------------*/
@@ -118,6 +121,20 @@ PROCESS_THREAD(transient_app_process, ev, data) {
     PRINTF("Woken up to perform a task\n");
   }
 #endif
+
+  /*-------------------------------------------------------------------------*/
+    /* Sensor readout */
+
+  // configure SHT3x sensor
+  sht3x_sensor.configure(0, 0);
+
+  // read ambient sensor values
+  temperature = sht3x_sensor.value(SHT3X_TYPE_TEMPERATURE);
+  humidity = sht3x_sensor.value(SHT3X_TYPE_HUMIDITY);
+
+  // print read sensor values
+  PRINTF("SHT31:  TEMP = % 5d [degC x 100]\n", temperature);
+  PRINTF("SHT31:  RH   = % 5d [%% x 100]\n", humidity);
 
   /*
    * Assemble manufacturer specific BLE beacon payload, see README.md for
