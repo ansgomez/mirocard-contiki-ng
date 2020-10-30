@@ -74,6 +74,8 @@
 #else
 #define PRINTF(...)
 #endif
+
+
 /* ------------------------------------------------------------------------- */
 /**
  * Set peripherals to sleep, configure EMU and enter deep sleep.
@@ -136,6 +138,10 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   PRINTF("SHT31:  TEMP = % 5d [degC x 100]\n", temperature);
   PRINTF("SHT31:  RH   = % 5d [%% x 100]\n", humidity);
 
+  //Encode values:
+  uint16_t humidity_raw = (uint16_t)(humidity / 10) & 0x03FF;
+  uint16_t temperature_raw = (uint16_t)(temperature + 4000) & 0x3FFF;
+
   /*
    * Assemble manufacturer specific BLE beacon payload, see README.md for
    * detailed definition of the BLE packet structure.
@@ -143,9 +149,16 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   uint8_t ble_payload_size = 1; // setting payload size field at the end
   ble_payload[ble_payload_size++] = BLE_ADV_TYPE_MANUFACTURER;
   ble_payload[ble_payload_size++] = state;
-  for (uint8_t i = 0; i < BATTERYLESS_DATA_UNIT_SIZE; i++) {
-    ble_payload[ble_payload_size++] = i-6;
-  }
+  ble_payload[ble_payload_size++] = 1;
+  ble_payload[ble_payload_size++] = 2;
+  ble_payload[ble_payload_size++] = 3;
+  ble_payload[ble_payload_size++] = 4;
+  ble_payload[ble_payload_size++] = (uint8_t)(humidity_raw & 0xFF);
+  ble_payload[ble_payload_size++] = (uint8_t)(((humidity_raw >> 8) & 0x03) | ((temperature_raw & 0x3F) << 2));
+  ble_payload[ble_payload_size++] = (uint8_t)((temperature_raw >> 6) & 0xFF);
+  // for (uint8_t i = 0; i < BATTERYLESS_DATA_UNIT_SIZE; i++) {
+  //   ble_payload[ble_payload_size++] = i-6;
+  // }
   // update payload size field (data length byte not counted)
   ble_payload[0] = ble_payload_size - 1;
 
