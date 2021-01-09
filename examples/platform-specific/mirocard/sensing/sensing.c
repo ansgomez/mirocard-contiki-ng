@@ -104,12 +104,12 @@ static void
 get_sht_reading()
 {
   // read ambient sensor values
-  int temperature = shtc3_sensor.value(SHTC3_TYPE_TEMPERATURE);
-  int humidity = shtc3_sensor.value(SHTC3_TYPE_HUMIDITY);
+  int temperature = sht3x_sensor.value(SHT3X_TYPE_TEMPERATURE);
+  int humidity = sht3x_sensor.value(SHT3X_TYPE_HUMIDITY);
 
   // print read sensor values
-  PRINTF("SHTC3:  TEMP = % 5d [degC x 100]\n", temperature);
-  PRINTF("SHTC3:  RH   = % 5d [%% x 100]\n", humidity);
+  PRINTF("SHT3X:  TEMP = % 5d [degC x 100]\n", temperature);
+  PRINTF("SHT3X:  RH   = % 5d [%% x 100]\n", humidity);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -192,7 +192,7 @@ static void
 init_sht_reading(void *not_used)
 {
   // configure SHT3x sensor
-  SENSORS_ACTIVATE(shtc3_sensor);
+  sht3x_sensor.configure(0, 0);
   get_sht_reading();
 }
 /*---------------------------------------------------------------------------*/
