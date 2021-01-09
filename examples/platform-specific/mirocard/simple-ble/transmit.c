@@ -99,8 +99,6 @@ AUTOSTART_PROCESSES(&transient_app_process);
 PROCESS_THREAD(transient_app_process, ev, data) {
   static uint8_t ble_payload[BLE_ADV_MAX_SIZE];
   static uint8_t state;
-  static int temperature;
-  static int humidity;
   /*-------------------------------------------------------------------------*/
   PROCESS_BEGIN();
   /*-------------------------------------------------------------------------*/
