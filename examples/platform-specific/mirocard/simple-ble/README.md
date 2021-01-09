@@ -92,6 +92,8 @@ All numbers are the typical values at room temperature taken from the respective
 > Common supported supply range for *all* peripherals: 2.3-3.3 V
 
 > Expected power down current: <10 uA
+> Measured power down current:  2.47uA
+> Notes on measured power: setup described on: A Gomez. "On-demand communication with the batteryless MiroCard: demo abstract." Proc. SenSys Conf. 2020.
 
 
 ### Start-Up Timing
@@ -106,10 +108,11 @@ All numbers are the typical values at room temperature taken from the respective
 | CC2650: 32 kHz XOSC_LF startup        |           N/A |           N/A |
 |                                                                       |
 |                                                                       |
-| SHTC3: power up                       |        0.2 ms |        0.3 ms |
-| SHTC3: soft reset                     |        0.2 ms |        0.3 ms |
-| SHTC3: measure LPM                    |        0.7 ms |        0.8 ms |
-| SHTC3: measure normal mode            |        11 ms |          13 ms |
+| SHT3X: power up                       |        0.5 ms |          1 ms |
+| SHT3X: soft reset                     |        0.5 ms |          1 ms |
+| SHT3X: measure low repeatability      |        2.5 ms |          4    |
+| SHT3X: measure med repeatability      |        4.5 ms |          6 ms |
+| SHT3X: measure high repeatability     |       12.5 ms |         15 ms |
 |                                                                       |
 |                                                                       |
 | BME280: power up                      |           N/A |          2 ms |
