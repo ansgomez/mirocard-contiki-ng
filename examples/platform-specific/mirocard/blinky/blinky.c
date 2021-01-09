@@ -138,7 +138,7 @@ PROCESS_THREAD(transient_app_process, ev, data) {
 #else
 
   // set the etimer module to generate an event in one second.
-  etimer_set(&timer, CLOCK_SECOND );
+  etimer_set(&timer, 2*CLOCK_SECOND );
   while (1)
   {
     // wait here for an event to happen
@@ -151,9 +151,9 @@ PROCESS_THREAD(transient_app_process, ev, data) {
       {
         PRINTF("Turning On\n");
         // TOGGLE LED
-        leds_single_on(LEDS_GREEN);
-        leds_single_on(LEDS_RED);
-        leds_single_off(LEDS_BLUE);
+        // leds_single_on(LEDS_GREEN);
+        // leds_single_on(LEDS_RED);
+        // leds_single_off(LEDS_BLUE);
       }
       else
       {
