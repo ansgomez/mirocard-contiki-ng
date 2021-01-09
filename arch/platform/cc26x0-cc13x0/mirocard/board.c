@@ -111,7 +111,7 @@ board_gpio_shutdown(void)
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_LED_3, IOC_IOPULL_UP);
 #else 
 #pragma message "ALLOWING LEDS TO BE ON DURING SLEEP"
-#warning "NOT LOW POWER"
+#pragma message "NOT LOW POWER"
 #endif
 }
 /*---------------------------------------------------------------------------*/

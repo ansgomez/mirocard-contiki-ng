@@ -83,7 +83,7 @@ main(void)
   ctimer_init();
   
 #ifdef BOARD_MIROCARD
-#pragma "MiroCard does not use WDT nor energest"
+#pragma message "MiroCard does not use WDT nor energest"
 #else
   watchdog_init();
   energest_init();
