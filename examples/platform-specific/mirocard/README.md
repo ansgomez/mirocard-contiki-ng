@@ -22,5 +22,5 @@ This is the sample application reads an ambient sensor and broadcasts the last s
 
 MiroCard Software Contributors:
 
-Andres Gomez, Miromico AG
-Simon Galli, Miromico AG
+* Andres Gomez, Miromico AG
+* Simon Galli, Miromico AG
