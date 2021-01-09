@@ -25,6 +25,7 @@ build
 tools/coffee-manager/build/
 tools/coffee-manager/coffee.jar
 COOJA.testlog
+.DS_STORE
 
 # platform build artifacts
 *.cc2538dk
