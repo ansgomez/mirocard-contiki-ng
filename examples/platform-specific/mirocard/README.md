@@ -20,7 +20,7 @@ This sample application emits a constant BLE advertisement. In it's simplest for
 
 This is the sample application reads an ambient sensor and broadcasts the last sensor reading. This application can be batteryless.
 
-# Using Sample Projects.
+# Running Sample Projects
 
 Before you compile one of these projects, be aware that certain projects are not compatible with batteryless operation. The `blinky` and `sensing` projects require too much energy to run from an SMD capacitor, so they are meant as practice projects. If you are interested in batteryless applications, take a look at the `simple-ble` and `ambient-ble` projects.
 
@@ -56,11 +56,11 @@ Optionally, you can add `WERROR=0` to avoid having warnings treated as errors.
 You can use the ROM Bootloader to load a new image via UART. Use the following command:
 
 ```bash
-make <PROJECT_NAME>.upload PORT=<YOUR_DEVICE>
+make <PROJECT_NAME>.upload PORT=<YOUR_PORT>
 ```
 Where `<PROJECT_NAME>` is one of the above mentioned projects (blinky, sensing, simple-ble, ambient-ble).
 
-Where `<YOUR_DEVICE>` is replaced with the MiroCard's UART port. In Linux/MacOS this will be "/dev/tty*", and in Windows "COM*".
+Where `<YOUR_PORT>` is replaced with the MiroCard's UART port. In Linux/MacOS this will be "/dev/tty*", and in Windows "COM*".
 
 Alternately, you can load the hex file via JTAG, using a TagConnect cable to connect the MiroCard to a LaunchPad/XDS debugger. This has been tested using the SmartRF Flasher 2 on Windows.
 
@@ -69,10 +69,10 @@ Alternately, you can load the hex file via JTAG, using a TagConnect cable to con
 If you have enabled UART logging, you can view the device's output on the terminal. Use the following command:
 
 ```bash
-make login PORT=<YOUR_DEVICE>
+make login PORT=<YOUR_PORT>
 ```
 
-Where `<YOUR_DEVICE>` is replaced with the MiroCard's UART port. In Linux/MacOS this will be "/dev/tty*", and in Windows "COM*".
+Where `<YOUR_PORT>` is replaced with the MiroCard's UART port. In Linux/MacOS this will be "/dev/tty*", and in Windows "COM*".
 ### Contributors
 
 MiroCard Software Contributors:
