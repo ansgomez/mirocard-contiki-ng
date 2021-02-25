@@ -151,9 +151,9 @@ PROCESS_THREAD(transient_app_process, ev, data) {
       {
         PRINTF("Turning On\n");
         // TOGGLE LED
-        // leds_single_on(LEDS_GREEN);
-        // leds_single_on(LEDS_RED);
-        // leds_single_off(LEDS_BLUE);
+        leds_single_on(LEDS_GREEN);
+        leds_single_on(LEDS_RED);
+        leds_single_off(LEDS_BLUE);
       }
       else
       {
