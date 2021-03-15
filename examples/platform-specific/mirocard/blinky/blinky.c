@@ -83,8 +83,10 @@
 /* ------------------------------------------------------------------------- */
 static inline void batteryless_shutdown() {
 
+#ifdef MIROCARD_BATTERYLESS
   // LPM with WAKEUP triggered activation
   lpm_shutdown(WAKEUP_TRIGGER_IOID, IOC_NO_IOPULL, WAKEUP_TRIGGER_EDGE);
+#endif
 
   // LPM with USER SWITCH triggered activation
   // lpm_shutdown(BOARD_IOID_KEY_USER, IOC_NO_IOPULL, IOC_WAKE_ON_LOW);
@@ -138,7 +140,7 @@ PROCESS_THREAD(transient_app_process, ev, data) {
 #else
 
   // set the etimer module to generate an event in one second.
-  etimer_set(&timer, 2*CLOCK_SECOND );
+  etimer_set(&timer, 1*CLOCK_SECOND );
   while (1)
   {
     // wait here for an event to happen
