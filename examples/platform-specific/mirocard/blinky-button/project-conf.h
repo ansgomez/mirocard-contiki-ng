@@ -82,7 +82,7 @@
 #define LOG_CONF_LEVEL_6TOP                 LOG_LEVEL_NONE
 #define LOG_CONF_LEVEL_COAP                 LOG_LEVEL_NONE
 #define LOG_CONF_LEVEL_LWM2M                LOG_LEVEL_NONE
-#define LOG_CONF_LEVEL_MAIN                 LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_MAIN                 LOG_LEVEL_DBG
 /*---------------------------------------------------------------------------*/
 /* Force button descriptions */
 #define BUTTON_HAL_CONF_WITH_DESCRIPTION 1

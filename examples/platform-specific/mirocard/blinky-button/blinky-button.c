@@ -83,7 +83,8 @@
 #endif
 
 /* ------------------------------------------------------------------------- */
-static inline void batteryless_shutdown() {
+static inline void batteryless_shutdown()
+{
 
 #ifdef MIROCARD_BATTERYLESS
   // LPM with WAKEUP triggered activation
@@ -97,9 +98,10 @@ static inline void batteryless_shutdown() {
 PROCESS(transient_app_process, "Transient application process");
 AUTOSTART_PROCESSES(&transient_app_process);
 /* ------------------------------------------------------------------------- */
-PROCESS_THREAD(transient_app_process, ev, data) {
+PROCESS_THREAD(transient_app_process, ev, data)
+{
 
-  // static struct etimer timer;
+  static struct etimer timer;
   static uint8_t aux = 1;
   static uint8_t state;
 
@@ -114,7 +116,8 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   PRINTF("Button HAL example.\n");
   PRINTF("Device button count: %u.\n", button_hal_button_count);
 
-  if(btn) {
+  if (btn)
+  {
     PRINTF("%s on pin %u with ID=0, Logic=%s, Pull=%s\n",
            BUTTON_HAL_GET_DESCRIPTION(btn), btn->pin,
            btn->negative_logic ? "Negative" : "Positive",
@@ -123,44 +126,63 @@ PROCESS_THREAD(transient_app_process, ev, data) {
 
   // check reset source for power on reset and clear flags
   state = (uint8_t)ti_lib_sys_ctrl_reset_source_get();
-  PRINTF("Reset source: 0x%x\n", state);
+  // PRINTF("Reset source: 0x%x\n", state);
 
   /****
   * NOTE: This application is meant to test the board with a normal supply.
   * This application does "not" work in batteryless mode because it needs
   * too much energy to see an LED turn on. If running in batteryless mode, this
   * will have very short LED bursts.
-  */ 
+  */
 #ifdef MIROCARD_BATTERYLESS
   // if not triggered by GPIO or emulated, cold start init for sleep only
-  if (state != RSTSRC_WAKEUP_FROM_SHUTDOWN) {
+  if (state != RSTSRC_WAKEUP_FROM_SHUTDOWN)
+  {
     /*-----------------------------------------------------------------------*/
     PRINTF("Going to sleep waiting for trigger\n");
     /*-----------------------------------------------------------------------*/
     /* cold start init for sleep only */
     batteryless_shutdown();
     /*-----------------------------------------------------------------------*/
-  } else {
+  }
+  else
+  {
     /* wakeup from LPM on GPIO trigger, do initialize for execution */
     PRINTF("Woken up to perform a task\n");
   }
 
   leds_single_on(LEDS_BLUE);
-  etimer_set(&timer, CLOCK_SECOND/20);
+  etimer_set(&timer, CLOCK_SECOND / 20);
   PROCESS_YIELD_UNTIL((ev == PROCESS_EVENT_TIMER));
   leds_single_off(LEDS_BLUE);
 
-/*-------------------------------------------------------------------------*/
+  /*-------------------------------------------------------------------------*/
   /* shutdown system for sleep */
   batteryless_shutdown();
 #else
 
   // set the etimer module to generate an event in one second.
-  // etimer_set(&timer, 1*CLOCK_SECOND );
+   etimer_set(&timer, 10*CLOCK_SECOND );
+   PRINTF("Before while");
   while (1)
   {
-    
-    if(aux)
+     PRINTF("Before wait\n");
+    PROCESS_YIELD();
+
+    PRINTF("Woke up, processing event\n");
+
+    if (ev == button_hal_press_event)
+    {
+      btn = (button_hal_button_t *)data;
+      PRINTF("Press event (%s)\n", BUTTON_HAL_GET_DESCRIPTION(btn));
+      aux = !aux;
+      // if (btn == button_hal_get_by_id(BUTTON_HAL_ID_BUTTON_ZERO))
+      // {
+      //   PRINTF("This was button 0, on pin %u\n", btn->pin);
+      //   aux = !aux;
+      // }
+
+      if (aux)
       {
         PRINTF("Turning Red on\n");
         leds_single_off(LEDS_GREEN);
@@ -174,29 +196,28 @@ PROCESS_THREAD(transient_app_process, ev, data) {
         leds_single_off(LEDS_RED);
         leds_single_off(LEDS_BLUE);
       }
+    }
+    else if (ev == button_hal_release_event)
+    {
+      btn = (button_hal_button_t *)data;
+      PRINTF("Release event (%s)\n", BUTTON_HAL_GET_DESCRIPTION(btn));
+    }
+    else if (ev == button_hal_periodic_event)
+    {
+      btn = (button_hal_button_t *)data;
+      PRINTF("Periodic event, %u seconds (%s)\n", btn->press_duration_seconds,
+             BUTTON_HAL_GET_DESCRIPTION(btn));
 
-    PROCESS_YIELD();
-
-    if(ev == button_hal_press_event) {
-      // btn = (button_hal_button_t *)data;
-      // PRINTF("Press event (%s)\n", BUTTON_HAL_GET_DESCRIPTION(btn));
-      if(btn == button_hal_get_by_id(BUTTON_HAL_ID_BUTTON_ZERO)) {
-        // PRINTF("This was button 0, on pin %u\n", btn->pin);
-        aux = !aux;
+      if (btn->press_duration_seconds > 5)
+      {
+        PRINTF("%s pressed for more than 5 secs. Do custom action\n",
+               BUTTON_HAL_GET_DESCRIPTION(btn));
       }
-    } else if(ev == button_hal_release_event) {
-        btn = (button_hal_button_t *)data;
-        PRINTF("Release event (%s)\n", BUTTON_HAL_GET_DESCRIPTION(btn));
-    } else if(ev == button_hal_periodic_event) {
-        btn = (button_hal_button_t *)data;
-        PRINTF("Periodic event, %u seconds (%s)\n", btn->press_duration_seconds,
-                BUTTON_HAL_GET_DESCRIPTION(btn));
-
-      if(btn->press_duration_seconds > 5) {
-            PRINTF("%s pressed for more than 5 secs. Do custom action\n",
-                BUTTON_HAL_GET_DESCRIPTION(btn));
-      }
-    }  
+    }
+    if(ev == PROCESS_EVENT_TIMER) {
+      PRINTF("processing a timer event\n");
+      etimer_reset(&timer);
+    }
   }
 #endif
   PROCESS_END();

@@ -1,6 +1,6 @@
 CONTIKI ?= ../../../../
 
-CONTIKI_PROJECT = blinky-button
+CONTIKI_PROJECT = button-hal-example
 
 TARGET=cc26x0-cc13x0
 BOARD=mirocard/cc2650
