@@ -167,6 +167,14 @@ send_ble_adv_nc(int channel, uint8_t *adv_payload, int adv_payload_len)
   params->endTrigger.triggerType = TRIG_NEVER;
   params->endTime = TRIG_NEVER;
 
+#ifdef DEBUG
+  PRINTF("BLE ADDR: ");
+  for(uint8_t i=2;i>=0;i--) {
+    PRINTF("%04X:",params->pDeviceAddress[i]);
+  }
+  PRINTF("\n");
+#endif
+
   /* Set up BLE Advertisement parameters */
   params = (rfc_bleAdvPar_t *)ble_params_buf;
   params->advLen = adv_payload_len;
