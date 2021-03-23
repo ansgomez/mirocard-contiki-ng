@@ -169,7 +169,7 @@ send_ble_adv_nc(int channel, uint8_t *adv_payload, int adv_payload_len)
 
 #ifdef DEBUG
   PRINTF("BLE ADDR: ");
-  for(uint8_t i=2;i>=0;i--) {
+  for(int8_t i=2;i>=0;i--) {
     PRINTF("%04X:",params->pDeviceAddress[i]);
   }
   PRINTF("\n");
