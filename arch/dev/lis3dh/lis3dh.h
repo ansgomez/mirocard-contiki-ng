@@ -208,7 +208,7 @@ typedef struct {
 #define LIS3DH_I2C_ADD_L   0x31U
 #define LIS3DH_I2C_ADD_H   0x33U
 
-#define LIS3DH_I2C_ADDRESS   LIS3DH_I2C_ADD_L
+#define LIS3DH_I2C_ADDRESS   LIS3DH_I2C_ADD_H
 
 /** Device Identification (Who am I) **/
 #define LIS3DH_ID          0x33U
