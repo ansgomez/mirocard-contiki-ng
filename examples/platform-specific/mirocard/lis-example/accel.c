@@ -63,6 +63,7 @@
 #include "dev/gpio-hal.h"
 #include "lib/sensors.h"
 
+#include "lis3dh-sensor.h"
 #include "accel.h"
 
 /*---------------------------------------------------------------------------*/
@@ -136,6 +137,9 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   static struct etimer timer;
   static uint8_t aux = 1;
   static uint8_t state;
+  static int32_t ret;
+  static uint8_t whoamI=1;
+
 
   /*-------------------------------------------------------------------------*/
   PROCESS_BEGIN();
@@ -198,6 +202,15 @@ PROCESS_THREAD(transient_app_process, ev, data) {
         leds_single_on(LEDS_GREEN);
         leds_single_on(LEDS_RED);
         leds_single_off(LEDS_BLUE);
+
+        /*  Check device ID */
+        ret = lis3dh_device_id_get(&whoamI);
+        if(ret == -1) {
+          PRINTF("LIS WHO ERROR\n");
+        }
+        else {
+          PRINTF("LIS is: %02X\n",whoamI);
+        }
       }
       else
       {
