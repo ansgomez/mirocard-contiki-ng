@@ -41,12 +41,12 @@
 #include "contiki.h"
 #include "lib/sensors.h"
 #include "sensortag/opt-3001-sensor.h"
-#include "sensortag/mpu-9250-sensor.h"
+#include "lis3dh-sensor.h"
 #include "sht3x-sensor.h"
 
 #include <string.h>
 /*---------------------------------------------------------------------------*/
 /** \brief Exports a global symbol to be used by the sensor API */
-SENSORS(&opt_3001_sensor, &mpu_9250_sensor, &sht3x_sensor);
+SENSORS(&opt_3001_sensor, &lis3dh_sensor, &sht3x_sensor);
 /*---------------------------------------------------------------------------*/
 /** @} */

@@ -324,7 +324,7 @@ board_i2c_select(uint8_t new_interface, uint8_t address)
 
     if(interface == BOARD_I2C_INTERFACE_0) {
       ti_lib_ioc_io_port_pull_set(BOARD_IOID_SDA, IOC_NO_IOPULL);
-      ti_lib_ioc_io_port_pull_set(BOARD_IOID_SCL, IOC_NO_IOPULL);
+      ti_lib_ioc_io_port_pull_set(BOARD_IOID_SCL, IOC_NO_IOPULL); 
       ti_lib_ioc_pin_type_i2c(I2C0_BASE, BOARD_IOID_SDA, BOARD_IOID_SCL);
       ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SDA_HP);
       ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SCL_HP);

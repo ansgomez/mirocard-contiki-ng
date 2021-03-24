@@ -48,7 +48,7 @@
 #ifndef BOARD_PERIPHERALS_H_
 #define BOARD_PERIPHERALS_H_
 /*---------------------------------------------------------------------------*/
-#include "mpu-9250-sensor.h"
+#include "lis3dh-sensor.h"
 #include "opt-3001-sensor.h"
 #include "sht3x-sensor.h"
 /*---------------------------------------------------------------------------*/
