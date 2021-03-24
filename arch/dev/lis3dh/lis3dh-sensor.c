@@ -99,6 +99,10 @@ static struct ctimer startup_timer;
 /* Wait for the MPU to have data ready */
 rtimer_clock_t t0;
 
+int32_t ret;
+uint8_t whoamI=0;
+uint8_t i2c_buff[4];
+
 /*
  * Wait timeout in rtimer ticks. This is just a random low number, since the
  * first time we read the sensor status, it should be ready to return data
@@ -339,6 +343,19 @@ notify_ready(void *not_used)
   sensors_changed(&lis3dh_sensor);
 }
 /*---------------------------------------------------------------------------*/
+
+int32_t lis3dh_get(uint8_t *buff, uint8_t len){
+  ret = 0;
+  // board_i2c_select(BOARD_I2C_INTERFACE_1, LIS3DH_I2C_ADDRESS);
+  // ret = sensor_common_read_reg(LIS3DH_WHO_AM_I, buff, 1);
+  board_i2c_select(BOARD_I2C_INTERFACE_1, LIS3DH_I2C_ADDRESS);
+  ret = sensor_common_read_reg(LIS3DH_WHO_AM_I, buff, len);
+  board_i2c_deselect();
+
+  return ret;
+}
+
+
 /**
   * @brief  DeviceWhoamI .[get]
   *
@@ -353,6 +370,7 @@ int32_t lis3dh_device_id_get(uint8_t *buff)
   SENSOR_SELECT();
   ret = sensor_common_read_reg(LIS3DH_WHO_AM_I, buff, 1);
   SENSOR_DESELECT();
+
   return ret;
 }
 /**
@@ -507,21 +525,44 @@ configure(int type, int enable)
     ti_lib_gpio_set_dio(BOARD_IOID_MPU_POWER);
     break;
   case SENSORS_ACTIVE:
+
+    /*  Check device ID */
+    lis3dh_device_id_get(&whoamI);
+    if(ret == -1) {
+      PRINTF("LIS WHO ERROR\n");
+    }
+    else {
+      PRINTF("LIS is: %02X\n",whoamI);
+    }
+    /*  Check i2c reg */
+    lis3dh_get(i2c_buff,2);
+    if(ret == -1) {
+      PRINTF("LIS REG ERROR\n");
+    }
+    else {
+      PRINTF("LIS REG value: ");
+      for(uint8_t i=0; i<4; i++)
+        PRINTF("%02X",i2c_buff[i]);
+      PRINTF("\n");
+    }
+
+    
+
     if( enable != 0 ) {
-      PRINTF("LIS: Enabling\n");
+      PRINTF("LIS: Enabling2\n");
       power_up();
 
       state = SENSOR_STATE_BOOTING;
     } else {
-      PRINTF("LIS: Disabling\n");
-      if(HWREG(GPIO_BASE + GPIO_O_DOUT31_0) & BOARD_MPU_POWER) {
-        /* Then check our state */
-        ctimer_stop(&startup_timer);
-        // sensor_sleep();
-        while(ti_lib_i2c_master_busy(I2C0_BASE));
-        state = SENSOR_STATE_DISABLED;
-        ti_lib_gpio_clear_dio(BOARD_IOID_MPU_POWER);
-      }
+      // PRINTF("LIS: Disabling\n");
+      // if(HWREG(GPIO_BASE + GPIO_O_DOUT31_0) & BOARD_MPU_POWER) {
+      //   /* Then check our state */
+      //   ctimer_stop(&startup_timer);
+      //   // sensor_sleep();
+      //   while(ti_lib_i2c_master_busy(I2C0_BASE));
+      //   state = SENSOR_STATE_DISABLED;
+      //   ti_lib_gpio_set_dio(BOARD_IOID_MPU_POWER);
+      // }
     }
     break;
   default:
