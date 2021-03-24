@@ -522,7 +522,7 @@ configure(int type, int enable)
     ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_MPU_POWER);
     ti_lib_ioc_io_drv_strength_set(BOARD_IOID_MPU_POWER, IOC_CURRENT_4MA,
                                    IOC_STRENGTH_MAX);
-    ti_lib_gpio_set_dio(BOARD_IOID_MPU_POWER);
+    ti_lib_gpio_clear_dio(BOARD_IOID_MPU_POWER);
     break;
   case SENSORS_ACTIVE:
 

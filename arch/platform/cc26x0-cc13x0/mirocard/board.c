@@ -54,7 +54,7 @@ board_gpio_shutdown(void)
 {
   //SENSORS 
   ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_MPU_POWER);
-  ti_lib_gpio_set_dio(BOARD_IOID_MPU_POWER);
+  ti_lib_gpio_clear_dio(BOARD_IOID_MPU_POWER);
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_MPU_INT);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_MPU_INT, IOC_NO_IOPULL);
   //TODO: Hall Sensor
@@ -132,10 +132,10 @@ shutdown_handler(uint8_t mode)
 {
   if(mode == LPM_MODE_SHUTDOWN) {
     SENSORS_DEACTIVATE(opt_3001_sensor);
-    // SENSORS_DEACTIVATE(lis3dh_sensor);
+    SENSORS_DEACTIVATE(lis3dh_sensor);
     SENSORS_DEACTIVATE(sht3x_sensor);
     ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_MPU_POWER);
-    ti_lib_gpio_set_dio(BOARD_IOID_MPU_POWER);
+    ti_lib_gpio_clear_dio(BOARD_IOID_MPU_POWER);
   }
 
   // shutdown I2C controller
@@ -195,8 +195,6 @@ board_init()
   ti_lib_gpio_clear_dio(BOARD_IOID_GPIO_3);
   ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_GPIO_4);
   ti_lib_gpio_clear_dio(BOARD_IOID_GPIO_4);
-  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_MPU_POWER);
-  ti_lib_gpio_set_dio(BOARD_IOID_MPU_POWER);
 
   /* register LPM module to restore peripheral power on wakeup */
   lpm_register_module(&batteryless_module);
