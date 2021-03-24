@@ -27,10 +27,17 @@
 /*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
 /*---------------------------------------------------------------------------*/
-#define LIS3DH_TYPE_TEMPERATURE  0
-#define LIS3DH_TYPE_HUMIDITY     1
+/* Values PWR_MGMT_1 */
+#define MPU_SLEEP                     0x4F  /* Sleep + stop all clocks */
+#define MPU_WAKE_UP                   0x09  /* Disable temp. + intern osc */
+
+/* 3 16-byte words for all sensor readings */
+#define SENSOR_DATA_BUF_SIZE   3
+/* Data sizes */
+#define DATA_SIZE              6
+
 /*---------------------------------------------------------------------------*/
-extern const struct sensors_sensor LIS3DH_sensor;
+extern const struct sensors_sensor lis3dh_sensor;
 /*---------------------------------------------------------------------------*/
 #endif /* LIS3DH_SENSOR_H_ */
 /*---------------------------------------------------------------------------*/
