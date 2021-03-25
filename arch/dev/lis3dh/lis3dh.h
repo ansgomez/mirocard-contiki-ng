@@ -205,8 +205,8 @@ typedef struct {
   */
 
 /** I2C Device Address 8 bit format if SA0=0 -> 31 if SA0=1 -> 33 **/
-#define LIS3DH_I2C_ADD_L   0x31U
-#define LIS3DH_I2C_ADD_H   0x33U
+#define LIS3DH_I2C_ADD_L   0x18U
+#define LIS3DH_I2C_ADD_H   0x19U
 
 #define LIS3DH_I2C_ADDRESS   LIS3DH_I2C_ADD_H
 
