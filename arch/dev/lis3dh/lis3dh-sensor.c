@@ -71,7 +71,8 @@ static int state = SENSOR_STATE_DISABLED;
 /* 3 16-byte words for all sensor readings */
 #define SENSOR_DATA_BUF_SIZE   3
 
-static uint16_t sensor_value[SENSOR_DATA_BUF_SIZE];
+static int16_t sensor_value[SENSOR_DATA_BUF_SIZE];
+// static float acceleration_mg[SENSOR_DATA_BUF_SIZE];
 /*---------------------------------------------------------------------------*/
 /*
  * Wait SENSOR_BOOT_DELAY ticks for the sensor to boot and
@@ -88,7 +89,7 @@ rtimer_clock_t t0;
 
 int32_t ret;
 uint8_t whoamI=0;
-uint8_t i2c_buff[4];
+uint8_t i2c_buff[6];
 
 /*
  * Wait timeout in rtimer ticks. This is just a random low number, since the
@@ -96,40 +97,96 @@ uint8_t i2c_buff[4];
  */
 #define READING_WAIT_TIMEOUT 10
 
+
 /**
- * \brief Read data from the accelerometer - X, Y, Z - 3 words
- * \return True if a valid reading could be taken, false otherwise
- */
-static bool
-acc_read(uint16_t *data)
+* @defgroup    LIS3DH_Sensitivity
+* @brief       These functions convert raw-data into engineering units.
+* @{
+*
+*/
+
+float lis3dh_from_fs2_hr_to_mg(int16_t lsb)
 {
-  bool success;
-
-  // if(interrupt_status & BIT_RAW_RDY_EN) 
-  {
-    /* Burst read of all accelerometer values */
-    SENSOR_SELECT();
-    success = sensor_common_read_reg(LIS3DH_OUT_X_L, (uint8_t *)data, DATA_SIZE);
-    SENSOR_DESELECT();
-
-    if(success) {
-      // convert_to_le((uint8_t *)data, DATA_SIZE);
-      PRINTF("Read Data\n");
-    } else {
-      PRINTF("Error reading data\n");
-      sensor_common_set_error_data((uint8_t *)data, DATA_SIZE);
-    }
-  } 
-  // else {
-  //   /* Data not ready */
-  //   success = false;
-  // }
-
-  return success; 
+  return ( (float)lsb / 16.0f ) * 1.0f;
 }
-/*---------------------------------------------------------------------------*/
+
+float lis3dh_from_fs4_hr_to_mg(int16_t lsb)
+{
+  return ( (float)lsb / 16.0f ) *  2.0f;
+}
+
+float lis3dh_from_fs8_hr_to_mg(int16_t lsb)
+{
+  return ( (float)lsb / 16.0f ) * 4.0f;
+}
+
+float lis3dh_from_fs16_hr_to_mg(int16_t lsb)
+{
+  return ( (float)lsb / 16.0f ) * 12.0f;
+}
+
+float lis3dh_from_lsb_hr_to_celsius(int16_t lsb)
+{
+  return ( ( (float)lsb / 64.0f ) / 4.0f ) + 25.0f;
+}
+
+float lis3dh_from_fs2_nm_to_mg(int16_t lsb)
+{
+  return ( (float)lsb / 64.0f ) *  4.0f;
+}
+
+float lis3dh_from_fs4_nm_to_mg(int16_t lsb)
+{
+  return ( (float)lsb / 64.0f ) *  8.0f;
+}
+
+float lis3dh_from_fs8_nm_to_mg(int16_t lsb)
+{
+  return ( (float)lsb / 64.0f ) * 16.0f;
+}
+
+float lis3dh_from_fs16_nm_to_mg(int16_t lsb)
+{
+  return ( (float)lsb / 64.0f ) * 48.0f;
+}
+
+float lis3dh_from_lsb_nm_to_celsius(int16_t lsb)
+{
+  return ( ( (float)lsb / 64.0f ) / 4.0f ) + 25.0f;
+}
+
+float lis3dh_from_fs2_lp_to_mg(int16_t lsb)
+{
+  return ( (float)lsb / 256.0f ) * 16.0f;
+}
+
+float lis3dh_from_fs4_lp_to_mg(int16_t lsb)
+{
+  return ( (float)lsb / 256.0f ) * 32.0f;
+}
+
+float lis3dh_from_fs8_lp_to_mg(int16_t lsb)
+{
+  return ( (float)lsb / 256.0f ) * 64.0f;
+}
+
+float lis3dh_from_fs16_lp_to_mg(int16_t lsb)
+{
+  return ( (float)lsb / 256.0f ) * 192.0f;
+}
+
+float lis3dh_from_lsb_lp_to_celsius(int16_t lsb)
+{
+  return ( ( (float)lsb / 256.0f ) * 1.0f ) + 25.0f;
+}
+
+/**
+  * @}
+  *
+  */
 
 /*---------------------------------------------------------------------------*/
+
 
 int32_t lis3dh_get(uint8_t *buff, uint8_t len){
   ret = 0;
@@ -169,22 +226,20 @@ int32_t lis3dh_device_id_get(uint8_t *buff)
   */
 int32_t lis3dh_block_data_update_set(uint8_t val)
 {
-  bool success;
   int32_t ret;
   lis3dh_ctrl_reg4_t ctrl_reg4;
 
-    /* Burst read of all accelerometer values */
-    SENSOR_SELECT();
-    success = sensor_common_read_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
-    SENSOR_DESELECT();
+  /* Burst read of all accelerometer values */
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
 
-    if(success) {
-      ctrl_reg4.bdu = val;
-      success = sensor_common_write_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
-      ret = 0;
-    } else {
-      ret = -1;
-    }
+
+  if(ret != -1) {
+    ctrl_reg4.bdu = val;
+    ret = sensor_common_write_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
+  } 
+  
+    SENSOR_DESELECT();
 
   return ret;
 }
@@ -224,8 +279,7 @@ int32_t lis3dh_data_rate_set(lis3dh_odr_t val)
   SENSOR_SELECT();
   ret = sensor_common_read_reg(LIS3DH_CTRL_REG1, (uint8_t *)&ctrl_reg1,1);
 
-
-  if (ret == 0) {
+  if (ret != -1) {
     ctrl_reg1.odr = (uint8_t)val;
     ret = sensor_common_write_reg(LIS3DH_CTRL_REG1,(uint8_t *)&ctrl_reg1,1);
   }
@@ -317,7 +371,7 @@ int32_t lis3dh_full_scale_set(lis3dh_fs_t val)
   SENSOR_SELECT();
   ret = sensor_common_read_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
 
-  if (ret == 0) {
+  if (ret != -1) {
     ctrl_reg4.fs = (uint8_t)val;
     ret = sensor_common_write_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
   }
@@ -388,11 +442,11 @@ int32_t lis3dh_operating_mode_set(lis3dh_op_md_t val)
   SENSOR_SELECT();
   ret = sensor_common_read_reg(LIS3DH_CTRL_REG1, (uint8_t *)&ctrl_reg1,1);
 
-  if (ret == 0) {
+  if (ret != -1) {
     ret = sensor_common_read_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
   }
 
-  if (ret == 0) {
+  if (ret != -1) {
     if ( val == LIS3DH_HR_12bit ) {
       ctrl_reg1.lpen = 0;
       ctrl_reg4.hr   = 1;
@@ -411,7 +465,7 @@ int32_t lis3dh_operating_mode_set(lis3dh_op_md_t val)
     ret = sensor_common_write_reg(LIS3DH_CTRL_REG1, (uint8_t *)&ctrl_reg1,1);
   }
 
-  if (ret == 0) {
+  if (ret != -1) {
     ret = sensor_common_write_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
   }
 
@@ -437,7 +491,7 @@ int32_t lis3dh_operating_mode_get(lis3dh_op_md_t *val)
   SENSOR_SELECT();
   ret = sensor_common_read_reg(LIS3DH_CTRL_REG1, (uint8_t *)&ctrl_reg1,1);
 
-  if (ret == 0) {
+  if (ret != -1) {
     ret = sensor_common_read_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
 
     if ( ctrl_reg1.lpen == PROPERTY_ENABLE ) {
@@ -474,7 +528,7 @@ int32_t lis3dh_fifo_watermark_set(uint8_t val)
   SENSOR_SELECT();
   ret = sensor_common_read_reg(LIS3DH_FIFO_CTRL_REG, (uint8_t *)&fifo_ctrl_reg,1);
 
-  if (ret == 0) {
+  if (ret != -1) {
     fifo_ctrl_reg.fth = val;
     ret = sensor_common_write_reg(LIS3DH_FIFO_CTRL_REG, (uint8_t *)&fifo_ctrl_reg,1);
 
@@ -523,7 +577,7 @@ int32_t lis3dh_fifo_mode_set(lis3dh_fm_t val)
   ret = sensor_common_read_reg(LIS3DH_FIFO_CTRL_REG, (uint8_t *)&fifo_ctrl_reg,1);
 
 
-  if (ret == 0) {
+  if (ret != -1) {
     fifo_ctrl_reg.fm = (uint8_t)val;
     ret = sensor_common_write_reg(LIS3DH_FIFO_CTRL_REG, (uint8_t *)&fifo_ctrl_reg,1);
   }
@@ -623,6 +677,119 @@ int32_t lis3dh_fifo_get(uint8_t *val)
   return ret;
 }
 
+/**
+  * @brief  FIFO status register.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      registers FIFO_SRC_REG
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_fifo_status_get(lis3dh_fifo_src_reg_t *val)
+{
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_FIFO_SRC_REG, (uint8_t *)val,1);
+  SENSOR_DESELECT();
+  return ret;
+}
+/**
+  * @brief  FIFO stored data level.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of fss in reg FIFO_SRC_REG
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_fifo_data_level_get(uint8_t *val)
+{
+  lis3dh_fifo_src_reg_t fifo_src_reg;
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_FIFO_SRC_REG, (uint8_t *)&fifo_src_reg,1);
+  SENSOR_DESELECT();
+  *val = (uint8_t)fifo_src_reg.fss;
+  return ret;
+}
+/**
+  * @brief  Empty FIFO status flag.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of empty in reg FIFO_SRC_REG
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_fifo_empty_flag_get(uint8_t *val)
+{
+  lis3dh_fifo_src_reg_t fifo_src_reg;
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_FIFO_SRC_REG, (uint8_t *)&fifo_src_reg,1);
+  SENSOR_DESELECT();
+  *val = (uint8_t)fifo_src_reg.empty;
+  return ret;
+}
+/**
+  * @brief  FIFO overrun status flag.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of ovrn_fifo in reg FIFO_SRC_REG
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_fifo_ovr_flag_get(uint8_t *val)
+{
+  lis3dh_fifo_src_reg_t fifo_src_reg;
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_FIFO_SRC_REG, (uint8_t *)&fifo_src_reg,1);
+  SENSOR_DESELECT();
+  *val = (uint8_t)fifo_src_reg.ovrn_fifo;
+  return ret;
+}
+/**
+  * @brief  FIFO watermark status.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of wtm in reg FIFO_SRC_REG
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_fifo_fth_flag_get(uint8_t *val)
+{
+  lis3dh_fifo_src_reg_t fifo_src_reg;
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_FIFO_SRC_REG, (uint8_t *)&fifo_src_reg,1);
+  SENSOR_DESELECT();
+  *val = (uint8_t)fifo_src_reg.wtm;
+  return ret;
+}
+
+
+/**
+  * @brief  Acceleration output value.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  buff     buffer that stores data read
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_acceleration_raw_get(int16_t *val)
+{
+  uint8_t buff[6];
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg( LIS3DH_OUT_X_L, buff, 6);
+  SENSOR_DESELECT();
+  val[0] = (int16_t)buff[1];
+  val[0] = (val[0] * 256) +  (int16_t)buff[0];
+  val[1] = (int16_t)buff[3];
+  val[1] = (val[1] * 256) +  (int16_t)buff[2];
+  val[2] = (int16_t)buff[5];
+  val[2] = (val[2] * 256) +  (int16_t)buff[4];
+  return ret;
+}
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -634,39 +801,47 @@ notify_ready(void *not_used)
   int32_t ret;
   uint8_t whoamI=1;
 
-  /*  Check device ID */
-  lis3dh_device_id_get(&whoamI);
-  if(ret == -1) {
-    PRINTF("LIS WHO ERROR\n");
-  }
-  else {
-    PRINTF("LIS is: %02X\n",whoamI);
-  }
+  // /*  Check device ID */
+  // lis3dh_device_id_get(&whoamI);
+  // if(ret == -1) {
+  //   PRINTF("LIS WHO ERROR\n");
+  // }
+  // else {
+  //   PRINTF("LIS is: %02X\n",whoamI);
+  // }
 
 
   /*  Enable Block Data Update */
   ret = lis3dh_block_data_update_set(PROPERTY_ENABLE);
-  if(ret == -1) {
-    PRINTF("LIS BUD ERROR\n");
-  }
-  else {
-    PRINTF("LIS IS WORKING\n");
-  }
+  PRINTF((ret != -1)?"":"LIS BUD ERROR\n");
+  // if(ret == -1) {
+  //   PRINTF("LIS BUD ERROR\n");
+  // }
+  // else {
+  //   PRINTF("LIS IS WORKING\n");
+  // }
   /* Set Output Data Rate to 25 hz */
-  lis3dh_data_rate_set(LIS3DH_ODR_25Hz);
+  ret = lis3dh_data_rate_set(LIS3DH_ODR_1Hz);
+  PRINTF((ret!= -1)?"":"LIS BUD ERROR\n");
   /* Set full scale to 2 g */
-  lis3dh_full_scale_set(LIS3DH_2g);
+  ret = lis3dh_full_scale_set(LIS3DH_16g);
+  PRINTF((ret!= -1)?"":"LIS SCALE ERROR\n");
   /* Set operating mode to high resolution */
-  lis3dh_operating_mode_set(LIS3DH_HR_12bit);
+  ret = lis3dh_operating_mode_set(LIS3DH_LP_8bit);
+  PRINTF((ret!= -1)?"":"LIS BIT ERROR\n");
   /* Set FIFO watermark to 25 samples */
-  lis3dh_fifo_watermark_set(25);
+  ret = lis3dh_fifo_watermark_set(5);
+  PRINTF((ret!= -1)?"":"LIS WTM ERROR\n");
   /* Set FIFO mode to Stream mode: Accumulate samples and
    * override old data */
-  lis3dh_fifo_mode_set(LIS3DH_DYNAMIC_STREAM_MODE);
+  ret = lis3dh_fifo_mode_set(LIS3DH_DYNAMIC_STREAM_MODE);
+  PRINTF((ret!= -1)?"":"LIS MODE ERROR\n");
+
   /* Enable FIFO */
   lis3dh_fifo_set(PROPERTY_ENABLE);
+  PRINTF((ret!= -1)?"":"LIS FIFO ERROR\n");
 
-  
+  PRINTF("LIS has been configured\n");
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -682,6 +857,84 @@ power_up(void)
   state = SENSOR_STATE_BOOTING;
 
   ctimer_set(&startup_timer, SENSOR_BOOT_DELAY, initialise, NULL);
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Read data from the accelerometer - X, Y, Z - 3 words
+ * \return True if a valid reading could be taken, false otherwise
+ */
+static bool
+acc_read(int16_t *data)
+{
+  bool success;
+
+  // if(interrupt_status & BIT_RAW_RDY_EN) 
+  // while (1) 
+  {
+    uint8_t flags;
+    uint8_t num = 0;
+    uint8_t buff[6];
+
+    lis3dh_fifo_fth_flag_get(&num);
+    printf("FIFO threshold %u\n", num);
+
+    /* Check if FIFO level over threshold */
+    lis3dh_fifo_fth_flag_get( &flags);
+    printf("FIFO watermark %u\n", flags);
+  
+    /* Read number of sample in FIFO */
+    // lis3dhh_fifo_full_flag_get( &num);
+    lis3dh_fifo_data_level_get( &num );
+    printf("FIFO size %u\n", num);
+
+    while (num-- > 0) {
+      memset(data, 0x00, 3 * sizeof(int16_t));
+      // memset(acceleration_mg, 0x00, 3 * sizeof(int16_t));
+      /* Read XL samples */
+      lis3dh_acceleration_raw_get( data);
+      // acceleration_mg[0] =
+      //   lis3dh_from_fs2_hr_to_mg(data[0]);
+      // acceleration_mg[1] =
+      //   lis3dh_from_fs2_hr_to_mg(data[1]);
+      // acceleration_mg[2] =
+      //   lis3dh_from_fs2_hr_to_mg(data[2]);
+
+      for(int i=0;i<3;i++) {
+        // PRINTF("Acceleration [mg]:%4.2f\t%4.2f\t%4.2f\r\n",
+        //       acceleration_mg[0], acceleration_mg[1], acceleration_mg[2]);
+        PRINTF("%d-",data[i]);
+      }
+      PRINTF("\n");
+    }
+
+    // /* Burst read of all accelerometer values */
+    // SENSOR_SELECT();
+    // success = sensor_common_read_reg(LIS3DH_OUT_X_L, buff, DATA_SIZE);
+    // SENSOR_DESELECT();
+
+    // if(success) {
+    //   // convert_to_le((uint8_t *)data, DATA_SIZE);
+    //   PRINTF("Read Data\n");
+    // } else {
+    //   PRINTF("Error reading data\n");
+    //   sensor_common_set_error_data((uint8_t *)buff, DATA_SIZE);
+    // }
+
+    // data[0] = (int16_t)buff[1];
+    // data[0] = (data[0] * 256) +  (int16_t)buff[0];
+    // data[1] = (int16_t)buff[3];
+    // data[1] = (data[1] * 256) +  (int16_t)buff[2];
+    // data[2] = (int16_t)buff[5];
+    // data[2] = (data[2] * 256) +  (int16_t)buff[4];
+  } 
+  // else {
+  //   /* Data not ready */
+  //   success = false;
+  // }
+
+  success=true;
+
+  return success; 
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -709,12 +962,12 @@ value(int type)
 
   rv = acc_read(sensor_value);
 
-  if(rv == 0) {
-    return CC26XX_SENSOR_READING_ERROR;
-  }
+  // if(rv == 0) {
+  //   return CC26XX_SENSOR_READING_ERROR;
+  // }
 
-  PRINTF("LIS: ACC = 0x%04x 0x%04x 0x%04x = ",
-          sensor_value[0], sensor_value[1], sensor_value[2]);
+  // PRINTF("LIS: ACC = 0x%04x 0x%04x 0x%04x = ",
+  //         sensor_value[0], sensor_value[1], sensor_value[2]);
 
   // /* Convert */
   // if(type == LIS3DH_SENSOR_TYPE_ACC_X) {
@@ -728,7 +981,7 @@ value(int type)
 
   // PRINTF("%ld\n", (long int)(converted_val * 100));
 
-  return rv;
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 /**
