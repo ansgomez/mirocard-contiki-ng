@@ -114,7 +114,8 @@ static void
 get_lis_reading()
 {
   //  printf("LIS Acc: X=");
-  // value = lis3dh_sensor.value(LIS3DH_SENSOR_TYPE_ACC_X);
+  int value = lis3dh_sensor.value(0);
+  printf("Value: %d\n", value);
   // print_lis_reading(value);
   // printf(" G\n");
 
@@ -128,7 +129,7 @@ get_lis_reading()
   // print_lis_reading(value);
   // printf(" G\n");
 
-  SENSORS_DEACTIVATE(lis3dh_sensor); 
+  // SENSORS_DEACTIVATE(lis3dh_sensor); 
 }
 
 /* ------------------------------------------------------------------------- */
@@ -144,8 +145,6 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   /*-------------------------------------------------------------------------*/
   PROCESS_BEGIN();
   /*-------------------------------------------------------------------------*/
-
-  lis3dh_sensor.configure(SENSORS_ACTIVE, 1);
 
   // check reset source for power on reset and clear flags
   state = (uint8_t)ti_lib_sys_ctrl_reset_source_get();
@@ -199,18 +198,27 @@ PROCESS_THREAD(transient_app_process, ev, data) {
       {
         // PRINTF("Turning On\n");
         // TOGGLE LED
-        leds_single_on(LEDS_GREEN);
-        leds_single_on(LEDS_RED);
+        // leds_single_on(LEDS_GREEN);
+        // leds_single_on(LEDS_RED);
         leds_single_off(LEDS_BLUE);
 
-        /*  Check device ID */
-        ret = lis3dh_device_id_get(&whoamI);
-        if(ret == -1) {
-          PRINTF("LIS WHO ERROR\n");
-        }
-        else {
-          PRINTF("LIS is: %02X\n",whoamI);
-        }
+        lis3dh_sensor.configure(SENSORS_ACTIVE, 1);
+        // /*  Check device ID */
+        // ret = lis3dh_device_id_get(&whoamI);
+        // if(ret == -1) {
+        //   PRINTF("LIS WHO ERROR\n");
+        // }
+        // else {
+        //   PRINTF("LIS is: %02X\n",whoamI);
+        // }
+
+        // ret = lis3dh_fifo_watermark_get(&whoamI);
+        // if(ret == -1) {
+        //   PRINTF("LIS WHO ERROR\n");
+        // }
+        // else {
+        //   PRINTF("LIS is: %02X\n",whoamI);
+        // }
       }
       else
       {
