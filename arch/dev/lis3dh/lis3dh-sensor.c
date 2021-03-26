@@ -788,7 +788,7 @@ void lis_config_fifo_mode() {
   //   PRINTF("LIS IS WORKING\n");
   // }
   /* Set Output Data Rate to 25 hz */
-  ret = lis3dh_data_rate_set(LIS3DH_ODR_1Hz);
+  ret = lis3dh_data_rate_set(LIS3DH_ODR_10Hz);
   PRINTF((ret!= -1)?"":"LIS BUD ERROR\n");
   /* Set full scale to 2 g */
   ret = lis3dh_full_scale_set(LIS3DH_2g);
@@ -933,13 +933,13 @@ acc_read(int16_t *data)
       lis3dh_acceleration_raw_get( lis_buff);
 
       // delay_ms(10);
-
+      PRINTF("[");
       for(int i=0;i<3;i++) {
         // PRINTF("Acceleration [mg]:%4.2f\t%4.2f\t%4.2f\r\n",
         //       acceleration_mg[0], acceleration_mg[1], acceleration_mg[2]);
-        PRINTF("%d,",lis_buff[i]);
+        PRINTF("%04x,",lis_buff[i]);
       }
-      PRINTF("\n");
+      PRINTF("]\n");
 
       ready=false;
       // num=0;
