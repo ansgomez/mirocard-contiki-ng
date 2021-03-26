@@ -54,13 +54,6 @@
 #define PRINTF(...)
 #endif
 
-// /* Sensor selection/deselection */
-// #define SENSOR_SELECT()     board_i2c_select(BOARD_I2C_INTERFACE_1, LIS3H_I2C_ADDRESS)
-// #define SENSOR_DESELECT()   board_i2c_deselect()
-
-/*---------------------------------------------------------------------------*/
-#define LIS_DATA_READY    0x01
-#define LIS_MOVEMENT      0x40
 /*---------------------------------------------------------------------------*/
 /* Sensor selection/deselection */
 #define SENSOR_SELECT()     board_i2c_select(BOARD_I2C_INTERFACE_1, LIS3DH_I2C_ADDRESS)
@@ -68,12 +61,6 @@
 /*---------------------------------------------------------------------------*/
 /* Delay */
 #define delay_ms(i) (ti_lib_cpu_delay(8000 * (i)))
-/*---------------------------------------------------------------------------*/
-static uint8_t lis_config;
-static uint8_t acc_range;
-static uint8_t acc_range_reg;
-static uint8_t val;
-static uint8_t interrupt_status;
 /*---------------------------------------------------------------------------*/
 #define SENSOR_STATE_DISABLED     0
 #define SENSOR_STATE_BOOTING      1
@@ -108,138 +95,7 @@ uint8_t i2c_buff[4];
  * first time we read the sensor status, it should be ready to return data
  */
 #define READING_WAIT_TIMEOUT 10
-/*---------------------------------------------------------------------------*/
-// /**
-//  * \brief Place the MPU in low power mode
-//  */
-// static void
-// sensor_sleep(void)
-// {
-//   SENSOR_SELECT();
 
-//   val = LIS_SLEEP;
-//   sensor_common_write_reg(PWR_MGMT_1, &val, 1);
-//   SENSOR_DESELECT();
-// }
-// /*---------------------------------------------------------------------------*/
-// /**
-//  * \brief Exit low power mode
-//  */
-// static void
-// sensor_wakeup(void)
-// {
-//   SENSOR_SELECT();
-//   val = LIS_WAKE_UP;
-//   sensor_common_write_reg(PWR_MGMT_1, &val, 1);
-
-//   /* All axis initially disabled */
-//   val = ALL_AXES;
-//   sensor_common_write_reg(PWR_MGMT_2, &val, 1);
-//   lis_config = 0;
-
-//   /* Restore the range */
-//   sensor_common_write_reg(ACCEL_CONFIG, &acc_range_reg, 1);
-
-//   /* Clear interrupts */
-//   sensor_common_read_reg(INT_STATUS, &val, 1);
-//   SENSOR_DESELECT();
-// }
-// /*---------------------------------------------------------------------------*/
-// /**
-//  * \brief Select gyro and accelerometer axes
-//  */
-// static void
-// select_axes(void)
-// {
-//   val = ~lis_config;
-//   SENSOR_SELECT();
-//   sensor_common_write_reg(PWR_MGMT_2, &val, 1);
-//   SENSOR_DESELECT();
-// }
-// /*---------------------------------------------------------------------------*/
-// static void
-// convert_to_le(uint8_t *data, uint8_t len)
-// {
-//   int i;
-//   for(i = 0; i < len; i += 2) {
-//     uint8_t tmp;
-//     tmp = data[i];
-//     data[i] = data[i + 1];
-//     data[i + 1] = tmp;
-//   }
-// }
-// /*---------------------------------------------------------------------------*/
-// /**
-//  * \brief Set the range of the accelerometer
-//  * \param new_range: ACC_RANGE_2G, ACC_RANGE_4G, ACC_RANGE_8G, ACC_RANGE_16G
-//  * \return true if the write to the sensor succeeded
-//  */
-// static bool
-// acc_set_range(uint8_t new_range)
-// {
-//   bool success;
-
-//   if(new_range == acc_range) {
-//     return true;
-//   }
-
-//   success = false;
-
-//   acc_range_reg = (new_range << 3);
-
-//   /* Apply the range */
-//   SENSOR_SELECT();
-//   success = sensor_common_write_reg(ACCEL_CONFIG, &acc_range_reg, 1);
-//   SENSOR_DESELECT();
-
-//   if(success) {
-//     acc_range = new_range;
-//   }
-
-//   return success;
-// }
-// /*---------------------------------------------------------------------------*/
-// /**
-//  * \brief Check whether a data or wake on motion interrupt has occurred
-//  * \return Return the interrupt status
-//  *
-//  * This driver does not use interrupts, however this function allows us to
-//  * determine whether a new sensor reading is available
-//  */
-// static uint8_t
-// int_status(void)
-// {
-//   SENSOR_SELECT();
-//   sensor_common_read_reg(INT_STATUS, &interrupt_status, 1);
-//   SENSOR_DESELECT();
-
-//   return interrupt_status;
-// }
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Enable the MPU
- * \param axes: Gyro bitmap [0..2], X = 1, Y = 2, Z = 4. 0 = gyro off
- *              Acc  bitmap [3..5], X = 8, Y = 16, Z = 32. 0 = accelerometer off
- */
-static void
-enable_sensor(uint16_t axes)
-{
-  // if(lis_config == 0 && axes != 0) {
-  //   /* Wake up the sensor if it was off */
-  //   sensor_wakeup();
-  // }
-
-  // lis_config = axes;
-
-  // if(lis_config != 0) {
-  //   /* Enable gyro + accelerometer readout */
-  //   select_axes();
-  //   delay_ms(10);
-  // } else if(lis_config == 0) {
-  //   sensor_sleep();
-  // }
-}
-/*---------------------------------------------------------------------------*/
 /**
  * \brief Read data from the accelerometer - X, Y, Z - 3 words
  * \return True if a valid reading could be taken, false otherwise
@@ -260,6 +116,7 @@ acc_read(uint16_t *data)
       // convert_to_le((uint8_t *)data, DATA_SIZE);
       PRINTF("Read Data\n");
     } else {
+      PRINTF("Error reading data\n");
       sensor_common_set_error_data((uint8_t *)data, DATA_SIZE);
     }
   } 
@@ -268,80 +125,10 @@ acc_read(uint16_t *data)
   //   success = false;
   // }
 
-  return success;
+  return success; 
 }
 /*---------------------------------------------------------------------------*/
-// /**
-//  * \brief Read data from the gyroscope - X, Y, Z - 3 words
-//  * \return True if a valid reading could be taken, false otherwise
-//  */
-// static bool
-// gyro_read(uint16_t *data)
-// {
-//   bool success;
 
-//   if(interrupt_status & BIT_RAW_RDY_EN) {
-//     /* Select this sensor */
-//     SENSOR_SELECT();
-
-//     /* Burst read of all gyroscope values */
-//     success = sensor_common_read_reg(GYRO_XOUT_H, (uint8_t *)data, DATA_SIZE);
-
-//     if(success) {
-//       convert_to_le((uint8_t *)data, DATA_SIZE);
-//     } else {
-//       sensor_common_set_error_data((uint8_t *)data, DATA_SIZE);
-//     }
-
-//     SENSOR_DESELECT();
-//   } else {
-//     success = false;
-//   }
-
-//   return success;
-// }
-// /*---------------------------------------------------------------------------*/
-// /**
-//  * \brief Convert accelerometer raw reading to a value in G
-//  * \param raw_data The raw accelerometer reading
-//  * \return The converted value
-//  */
-// static float
-// acc_convert(int16_t raw_data)
-// {
-//   float v = 0;
-
-//   switch(acc_range) {
-//   case ACC_RANGE_2G:
-//     /* Calculate acceleration, unit G, range -2, +2 */
-//     v = (raw_data * 1.0) / (32768 / 2);
-//     break;
-//   case ACC_RANGE_4G:
-//     /* Calculate acceleration, unit G, range -4, +4 */
-//     v = (raw_data * 1.0) / (32768 / 4);
-//     break;
-//   case ACC_RANGE_8G:
-//     /* Calculate acceleration, unit G, range -8, +8 */
-//     v = (raw_data * 1.0) / (32768 / 8);
-//     break;
-//   case ACC_RANGE_16G:
-//     /* Calculate acceleration, unit G, range -16, +16 */
-//     v = (raw_data * 1.0) / (32768 / 16);
-//     break;
-//   default:
-//     v = 0;
-//     break;
-//   }
-
-//   return v;
-// }
-/*---------------------------------------------------------------------------*/
-static void
-notify_ready(void *not_used)
-{
-  state = SENSOR_STATE_ENABLED;
-  sensors_changed(&lis3dh_sensor);
-}
 /*---------------------------------------------------------------------------*/
 
 int32_t lis3dh_get(uint8_t *buff, uint8_t len){
@@ -354,7 +141,6 @@ int32_t lis3dh_get(uint8_t *buff, uint8_t len){
 
   return ret;
 }
-
 
 /**
   * @brief  DeviceWhoamI .[get]
@@ -402,10 +188,449 @@ int32_t lis3dh_block_data_update_set(uint8_t val)
 
   return ret;
 }
+
+/**
+  * @brief  Block Data Update.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of bdu in reg CTRL_REG4
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_block_data_update_get(uint8_t *val)
+{
+  lis3dh_ctrl_reg4_t ctrl_reg4;
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
+  SENSOR_DESELECT();
+  *val = (uint8_t)ctrl_reg4.bdu;
+  return ret;
+}
+
+/**
+  * @brief  Output data rate selection.[set]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of odr in reg CTRL_REG1
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_data_rate_set(lis3dh_odr_t val)
+{
+  lis3dh_ctrl_reg1_t ctrl_reg1;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_CTRL_REG1, (uint8_t *)&ctrl_reg1,1);
+
+
+  if (ret == 0) {
+    ctrl_reg1.odr = (uint8_t)val;
+    ret = sensor_common_write_reg(LIS3DH_CTRL_REG1,(uint8_t *)&ctrl_reg1,1);
+  }
+
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
+/**
+  * @brief  Output data rate selection.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      get the values of odr in reg CTRL_REG1
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_data_rate_get(lis3dh_odr_t *val)
+{
+  lis3dh_ctrl_reg1_t ctrl_reg1;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_CTRL_REG1, (uint8_t *)&ctrl_reg1,1);
+  SENSOR_DESELECT();
+
+  switch (ctrl_reg1.odr) {
+    case LIS3DH_POWER_DOWN:
+      *val = LIS3DH_POWER_DOWN;
+      break;
+
+    case LIS3DH_ODR_1Hz:
+      *val = LIS3DH_ODR_1Hz;
+      break;
+
+    case LIS3DH_ODR_10Hz:
+      *val = LIS3DH_ODR_10Hz;
+      break;
+
+    case LIS3DH_ODR_25Hz:
+      *val = LIS3DH_ODR_25Hz;
+      break;
+
+    case LIS3DH_ODR_50Hz:
+      *val = LIS3DH_ODR_50Hz;
+      break;
+
+    case LIS3DH_ODR_100Hz:
+      *val = LIS3DH_ODR_100Hz;
+      break;
+
+    case LIS3DH_ODR_200Hz:
+      *val = LIS3DH_ODR_200Hz;
+      break;
+
+    case LIS3DH_ODR_400Hz:
+      *val = LIS3DH_ODR_400Hz;
+      break;
+
+    case LIS3DH_ODR_1kHz620_LP:
+      *val = LIS3DH_ODR_1kHz620_LP;
+      break;
+
+    case LIS3DH_ODR_5kHz376_LP_1kHz344_NM_HP:
+      *val = LIS3DH_ODR_5kHz376_LP_1kHz344_NM_HP;
+      break;
+
+    default:
+      *val = LIS3DH_POWER_DOWN;
+      break;
+  }
+
+  return ret;
+}
+
+/**
+  * @brief  Full-scale configuration.[set]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of fs in reg CTRL_REG4
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_full_scale_set(lis3dh_fs_t val)
+{
+  lis3dh_ctrl_reg4_t ctrl_reg4;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
+
+  if (ret == 0) {
+    ctrl_reg4.fs = (uint8_t)val;
+    ret = sensor_common_write_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
+  }
+
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
+/**
+  * @brief  Full-scale configuration.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      get the values of fs in reg CTRL_REG4
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_full_scale_get(lis3dh_fs_t *val)
+{
+  lis3dh_ctrl_reg4_t ctrl_reg4;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
+  SENSOR_DESELECT();
+
+  switch (ctrl_reg4.fs) {
+    case LIS3DH_2g:
+      *val = LIS3DH_2g;
+      break;
+
+    case LIS3DH_4g:
+      *val = LIS3DH_4g;
+      break;
+
+    case LIS3DH_8g:
+      *val = LIS3DH_8g;
+      break;
+
+    case LIS3DH_16g:
+      *val = LIS3DH_16g;
+      break;
+
+    default:
+      *val = LIS3DH_2g;
+      break;
+  }
+
+  return ret;
+}
+
+
+/**
+  * @brief  Operating mode selection.[set]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of lpen in reg CTRL_REG1
+  *                  and HR in reg CTRL_REG4
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_operating_mode_set(lis3dh_op_md_t val)
+{
+  lis3dh_ctrl_reg1_t ctrl_reg1;
+  lis3dh_ctrl_reg4_t ctrl_reg4;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_CTRL_REG1, (uint8_t *)&ctrl_reg1,1);
+
+  if (ret == 0) {
+    ret = sensor_common_read_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
+  }
+
+  if (ret == 0) {
+    if ( val == LIS3DH_HR_12bit ) {
+      ctrl_reg1.lpen = 0;
+      ctrl_reg4.hr   = 1;
+    }
+
+    if (val == LIS3DH_NM_10bit) {
+      ctrl_reg1.lpen = 0;
+      ctrl_reg4.hr   = 0;
+    }
+
+    if (val == LIS3DH_LP_8bit) {
+      ctrl_reg1.lpen = 1;
+      ctrl_reg4.hr   = 0;
+    }
+
+    ret = sensor_common_write_reg(LIS3DH_CTRL_REG1, (uint8_t *)&ctrl_reg1,1);
+  }
+
+  if (ret == 0) {
+    ret = sensor_common_write_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
+  }
+
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
+/**
+  * @brief  Operating mode selection.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of lpen in reg CTRL_REG1
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_operating_mode_get(lis3dh_op_md_t *val)
+{
+  lis3dh_ctrl_reg1_t ctrl_reg1;
+  lis3dh_ctrl_reg4_t ctrl_reg4;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_CTRL_REG1, (uint8_t *)&ctrl_reg1,1);
+
+  if (ret == 0) {
+    ret = sensor_common_read_reg(LIS3DH_CTRL_REG4, (uint8_t *)&ctrl_reg4,1);
+
+    if ( ctrl_reg1.lpen == PROPERTY_ENABLE ) {
+      *val = LIS3DH_LP_8bit;
+    }
+
+    else if (ctrl_reg4.hr == PROPERTY_ENABLE ) {
+      *val = LIS3DH_HR_12bit;
+    }
+
+    else {
+      *val = LIS3DH_NM_10bit;
+    }
+  }
+
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
+/**
+  * @brief  FIFO watermark level selection.[set]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of fth in reg FIFO_CTRL_REG
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_fifo_watermark_set(uint8_t val)
+{
+  lis3dh_fifo_ctrl_reg_t fifo_ctrl_reg;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_FIFO_CTRL_REG, (uint8_t *)&fifo_ctrl_reg,1);
+
+  if (ret == 0) {
+    fifo_ctrl_reg.fth = val;
+    ret = sensor_common_write_reg(LIS3DH_FIFO_CTRL_REG, (uint8_t *)&fifo_ctrl_reg,1);
+
+  }
+
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
+/**
+  * @brief  FIFO watermark level selection.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of fth in reg FIFO_CTRL_REG
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_fifo_watermark_get(uint8_t *val)
+{
+  lis3dh_fifo_ctrl_reg_t fifo_ctrl_reg;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_FIFO_CTRL_REG, (uint8_t *)&fifo_ctrl_reg,1);
+  SENSOR_DESELECT();
+
+  *val = (uint8_t)fifo_ctrl_reg.fth;
+  return ret;
+}
+
+/**
+  * @brief  FIFO mode selection.[set]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of fm in reg FIFO_CTRL_REG
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_fifo_mode_set(lis3dh_fm_t val)
+{
+  lis3dh_fifo_ctrl_reg_t fifo_ctrl_reg;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_FIFO_CTRL_REG, (uint8_t *)&fifo_ctrl_reg,1);
+
+
+  if (ret == 0) {
+    fifo_ctrl_reg.fm = (uint8_t)val;
+    ret = sensor_common_write_reg(LIS3DH_FIFO_CTRL_REG, (uint8_t *)&fifo_ctrl_reg,1);
+  }
+
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
+/**
+  * @brief  FIFO mode selection.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      Get the values of fm in reg FIFO_CTRL_REG
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_fifo_mode_get(lis3dh_fm_t *val)
+{
+  lis3dh_fifo_ctrl_reg_t fifo_ctrl_reg;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_FIFO_CTRL_REG, (uint8_t *)&fifo_ctrl_reg,1);
+  SENSOR_DESELECT();
+
+  switch (fifo_ctrl_reg.fm) {
+    case LIS3DH_BYPASS_MODE:
+      *val = LIS3DH_BYPASS_MODE;
+      break;
+
+    case LIS3DH_FIFO_MODE:
+      *val = LIS3DH_FIFO_MODE;
+      break;
+
+    case LIS3DH_DYNAMIC_STREAM_MODE:
+      *val = LIS3DH_DYNAMIC_STREAM_MODE;
+      break;
+
+    case LIS3DH_STREAM_TO_FIFO_MODE:
+      *val = LIS3DH_STREAM_TO_FIFO_MODE;
+      break;
+
+    default:
+      *val = LIS3DH_BYPASS_MODE;
+      break;
+  }
+
+  return ret;
+}
+
+
+/**
+  * @brief  FIFO enable.[set]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of fifo_en in reg CTRL_REG5
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_fifo_set(uint8_t val)
+{
+  lis3dh_ctrl_reg5_t ctrl_reg5;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_CTRL_REG5, (uint8_t *)&ctrl_reg5,1);
+
+  if (ret == 0) {
+    ctrl_reg5.fifo_en = val;
+    ret = sensor_common_write_reg(LIS3DH_CTRL_REG5, (uint8_t *)&ctrl_reg5,1);
+  }
+
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
+/**
+  * @brief  FIFO enable.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of fifo_en in reg CTRL_REG5
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_fifo_get(uint8_t *val)
+{
+  lis3dh_ctrl_reg5_t ctrl_reg5;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_CTRL_REG5, (uint8_t *)&ctrl_reg5,1);
+  SENSOR_DESELECT();
+
+  *val = (uint8_t)ctrl_reg5.fifo_en;
+  return ret;
+}
+
+
 /*---------------------------------------------------------------------------*/
 static void
-initialise(void *not_used)
+notify_ready(void *not_used)
 {
+  state = SENSOR_STATE_ENABLED;
+  sensors_changed(&lis3dh_sensor);
+
   int32_t ret;
   uint8_t whoamI=1;
 
@@ -427,20 +652,26 @@ initialise(void *not_used)
   else {
     PRINTF("LIS IS WORKING\n");
   }
-  // /* Set Output Data Rate to 25 hz */
-  // lis3dh_data_rate_set(LIS3DH_ODR_25Hz);
-  // /* Set full scale to 2 g */
-  // lis3dh_full_scale_set(LIS3DH_2g);
-  // /* Set operating mode to high resolution */
-  // lis3dh_operating_mode_set(LIS3DH_HR_12bit);
-  // /* Set FIFO watermark to 25 samples */
-  // lis3dh_fifo_watermark_set(25);
-  // /* Set FIFO mode to Stream mode: Accumulate samples and
-  //  * override old data */
-  // lis3dh_fifo_mode_set(LIS3DH_DYNAMIC_STREAM_MODE);
-  // /* Enable FIFO */
-  // lis3dh_fifo_set(PROPERTY_ENABLE);
+  /* Set Output Data Rate to 25 hz */
+  lis3dh_data_rate_set(LIS3DH_ODR_25Hz);
+  /* Set full scale to 2 g */
+  lis3dh_full_scale_set(LIS3DH_2g);
+  /* Set operating mode to high resolution */
+  lis3dh_operating_mode_set(LIS3DH_HR_12bit);
+  /* Set FIFO watermark to 25 samples */
+  lis3dh_fifo_watermark_set(25);
+  /* Set FIFO mode to Stream mode: Accumulate samples and
+   * override old data */
+  lis3dh_fifo_mode_set(LIS3DH_DYNAMIC_STREAM_MODE);
+  /* Enable FIFO */
+  lis3dh_fifo_set(PROPERTY_ENABLE);
 
+  
+}
+/*---------------------------------------------------------------------------*/
+static void
+initialise(void *not_used)
+{
   ctimer_set(&startup_timer, SENSOR_STARTUP_DELAY, notify_ready, NULL);
 }
 /*---------------------------------------------------------------------------*/
@@ -482,7 +713,7 @@ value(int type)
     return CC26XX_SENSOR_READING_ERROR;
   }
 
-  PRINTF("MPU: ACC = 0x%04x 0x%04x 0x%04x = ",
+  PRINTF("LIS: ACC = 0x%04x 0x%04x 0x%04x = ",
           sensor_value[0], sensor_value[1], sensor_value[2]);
 
   // /* Convert */
@@ -516,41 +747,28 @@ configure(int type, int enable)
   switch(type) {
   case SENSORS_HW_INIT:
     ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_MPU_INT);
-    ti_lib_ioc_io_port_pull_set(BOARD_IOID_MPU_INT, IOC_IOPULL_DOWN);
+    ti_lib_ioc_io_port_pull_set(BOARD_IOID_MPU_INT, IOC_NO_IOPULL);
     ti_lib_ioc_io_hyst_set(BOARD_IOID_MPU_INT, IOC_HYST_ENABLE);
 
     ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_MPU_POWER);
     ti_lib_ioc_io_drv_strength_set(BOARD_IOID_MPU_POWER, IOC_CURRENT_4MA,
                                    IOC_STRENGTH_MAX);
-    ti_lib_gpio_clear_dio(BOARD_IOID_MPU_POWER);
+    ti_lib_gpio_set_dio(BOARD_IOID_MPU_POWER);
     break;
   case SENSORS_ACTIVE:
-
-    /*  Check device ID */
-    lis3dh_device_id_get(&whoamI);
-    if(ret == -1) {
-      PRINTF("LIS WHO ERROR\n");
-    }
-    else {
-      PRINTF("LIS is: %02X\n",whoamI);
-    }
-    /*  Check i2c reg */
-    lis3dh_get(i2c_buff,2);
-    if(ret == -1) {
-      PRINTF("LIS REG ERROR\n");
-    }
-    else {
-      PRINTF("LIS REG value: ");
-      for(uint8_t i=0; i<4; i++)
-        PRINTF("%02X",i2c_buff[i]);
-      PRINTF("\n");
-    }
-
-    
-
-    if( enable != 0 ) {
+    if(enable) {
       PRINTF("LIS: Enabling2\n");
       power_up();
+      delay_ms(10);
+
+      /*  Check device ID */
+      lis3dh_device_id_get(&whoamI);
+      if(ret == -1) {
+        PRINTF("LIS WHO ERROR\n");
+      }
+      else {
+        PRINTF("LIS is: %02X\n",whoamI);
+      }
 
       state = SENSOR_STATE_BOOTING;
     } else {
