@@ -76,11 +76,14 @@ board_gpio_shutdown(void)
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C_SCL, IOC_IOPULL_UP);
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C_SDA);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C_SDA, IOC_IOPULL_UP);
-  //I2C2 (MPU) -> Vdd is a GPIO. When off, pull to GND
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C2_SDA_HP);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C2_SDA_HP, IOC_IOPULL_DOWN);
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C2_SCL_HP);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C2_SCL_HP, IOC_IOPULL_DOWN);
+  // //I2C2 (MPU) -> Vdd is a GPIO. When off, pull to GND
+  // ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C2_SDA_HP);
+  // // ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C2_SDA_HP, IOC_IOPULL_DOWN);
+  //   ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C2_SDA_HP, IOC_NO_IOPULL);
+  // ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C2_SCL_HP);
+  // // ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C2_SCL_HP, IOC_IOPULL_DOWN);
+  //   ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C2_SCL_HP, IOC_NO_IOPULL);
+
 
   // UART pin configuration for shutdown
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_UART_RX);
@@ -112,6 +115,25 @@ board_gpio_shutdown(void)
 #else 
 #pragma message "ALLOWING LEDS TO BE ON DURING SLEEP"
 #pragma message "NOT LOW POWER"
+
+    ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_MPU_POWER);
+    ti_lib_ioc_io_drv_strength_set(BOARD_IOID_MPU_POWER, IOC_CURRENT_4MA,
+                                   IOC_STRENGTH_MAX);
+    ti_lib_gpio_set_dio(BOARD_IOID_MPU_POWER);
+
+    // ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C2_SDA_HP);
+    // // ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C2_SDA_HP, IOC_IOPULL_DOWN);
+    //   ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C2_SDA_HP, IOC_NO_IOPULL);
+    // ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C2_SCL_HP);
+    // // ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C2_SCL_HP, IOC_IOPULL_DOWN);
+    //   ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C2_SCL_HP, IOC_NO_IOPULL);
+
+    ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C2_SDA_HP, IOC_NO_IOPULL);
+    ti_lib_ioc_io_port_pull_set(BOARD_IOID_I2C2_SCL_HP, IOC_NO_IOPULL);
+    ti_lib_ioc_pin_type_i2c(I2C0_BASE, BOARD_IOID_I2C2_SDA_HP, BOARD_IOID_I2C2_SCL_HP);
+    ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C2_SDA_HP);
+    ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_I2C2_SCL_HP);
+
 #endif
 }
 /*---------------------------------------------------------------------------*/
