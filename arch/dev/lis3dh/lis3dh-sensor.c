@@ -1228,6 +1228,31 @@ int32_t lis3dh_tap_source_get(lis3dh_click_src_t *val)
   return ret;
 }
 
+/**
+  * @brief  Tap/Double Tap generator source register.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      registers CLICK_SRC
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_tap_enable()
+{
+  lis3dh_click_src_t src;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_CLICK_SRC, (uint8_t *)&src,1);
+
+  if (ret == 0) {
+    src.sclick = 0x01;
+    ret = sensor_common_write_reg(LIS3DH_CLICK_SRC, (uint8_t *)&src,1);
+  }
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
 
 /**
   * @brief  Acceleration output value.[get]
@@ -1336,8 +1361,10 @@ void lis_config_tap_mode() {
    * 1 LSB = 1/ODR */
   ret = lis3dh_tap_threshold_set(0x24); //0x12
   PRINTF((ret!= -1)?"":"LIS THS ERROR\n");
-  // ret = lis3dh_shock_dur_set(0x33);
-  // PRINTF((ret!= -1)?"":"LIS DUR ERROR\n");
+  ret = lis3dh_shock_dur_set(0x44);
+  PRINTF((ret!= -1)?"":"LIS SDUR ERROR\n");
+  ret = lis3dh_quiet_dur_set(0xFF);
+  PRINTF((ret!= -1)?"":"LIS QDUR ERROR\n");
   /* Enable Click interrupt on INT pin 1 */
   ret = lis3dh_pin_int1_config_get(&ctrl_reg3);
   PRINTF((ret!= -1)?"":"LIS INT1G ERROR\n");
@@ -1357,6 +1384,8 @@ void lis_config_tap_mode() {
   /* Set device in HR mode */
   ret = lis3dh_operating_mode_set(LIS3DH_NM_10bit);  
   PRINTF((ret!= -1)?"":"LIS MODE ERROR\n");
+  ret = lis3dh_tap_enable();
+  PRINTF((ret!= -1)?"":"LIS TAPE ERROR\n");
 }
 
 void lis_config_single_mode() {
@@ -1430,6 +1459,20 @@ void print_register(uint8_t addr) {
 
   PRINTF("REG(%02X) = %02X\n",addr, reg);
 }
+
+static uint8_t
+int_status(void)
+{
+  int32_t ret;
+  lis3dh_click_src_t src;
+  
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg( LIS3DH_CLICK_SRC, (uint8_t *)&src,1);
+  SENSOR_DESELECT();
+
+  return src.sclick;
+}
+
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Read data from the accelerometer - X, Y, Z - 3 words
@@ -1453,14 +1496,24 @@ acc_read(int16_t *data)
      * Read INT pin 1 in polling mode
      * or read src status register
      */
-    lis3dh_tap_source_get(&src);
+    rtimer_clock_t   t0 = RTIMER_NOW();
 
+    while(!int_status() &&
+          (RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + READING_WAIT_TIMEOUT)));
+
+
+    lis3dh_tap_source_get(&src);
     if (src.sclick) {
       PRINTF("click detected : x %d, y %d, z %d, sign %d\n",src.x, src.y, src.z, src.sign);
     }
-    else {
-      PRINTF("No click detected\n");
-    }
+  
+    // lis3dh_tap_source_get(&src);
+    // if (src.sclick) {
+    //   PRINTF("click detected : x %d, y %d, z %d, sign %d\n",src.x, src.y, src.z, src.sign);
+    // }
+    // else {
+    //   PRINTF("No click detected\n");
+    // }
 
     /* Read output only if new value available */
     lis3dh_xl_data_ready_get( &reg.byte);
