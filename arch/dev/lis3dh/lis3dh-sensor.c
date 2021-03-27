@@ -91,6 +91,7 @@ rtimer_clock_t t0;
 // int32_t ret;
 uint8_t whoamI=0;
 uint8_t i2c_buff[6];
+uint16_t count=0;
 
 /*
  * Wait timeout in rtimer ticks. This is just a random low number, since the
@@ -732,6 +733,503 @@ int32_t lis3dh_xl_data_ovr_get( uint8_t *val)
 }
 
 /**
+  * @brief  User-defined threshold value for Tap/Double Tap event.[set]
+  *         1 LSB = full scale/128
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of ths in reg CLICK_THS
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_tap_threshold_set(uint8_t val)
+{
+  lis3dh_click_ths_t click_ths;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_CLICK_THS, (uint8_t *)&click_ths,1);
+
+  if (ret == 0) {
+    click_ths.ths = val;
+    click_ths.lir_click = 0x01;
+    ret = sensor_common_write_reg(LIS3DH_CLICK_THS, (uint8_t *)&click_ths,1);
+  }
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
+/**
+  * @brief  User-defined threshold value for Tap/Double Tap event.[get]
+  *         1 LSB = full scale/128
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of ths in reg CLICK_THS
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_tap_threshold_get(uint8_t *val)
+{
+  lis3dh_click_ths_t click_ths;
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg( LIS3DH_CLICK_THS, (uint8_t *)&click_ths,1);
+  SENSOR_DESELECT();
+  *val = (uint8_t)click_ths.ths;
+  return ret;
+}
+
+/**
+  * @brief   If the LIR_Click bit is not set, the interrupt is kept high
+  *          for the duration of the latency window.
+  *          If the LIR_Click bit is set, the interrupt is kept high until the
+  *          CLICK_SRC(39h) register is read.[set]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of lir_click in reg CLICK_THS
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_tap_notification_mode_set(stmdev_ctx_t *ctx,
+                                         lis3dh_lir_click_t val)
+{
+  lis3dh_click_ths_t click_ths;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_CLICK_THS, (uint8_t *)&click_ths,1);
+
+  if (ret == 0) {
+    click_ths.lir_click = (uint8_t)val;
+    ret = sensor_common_write_reg(LIS3DH_CLICK_THS, (uint8_t *)&click_ths,1);
+  }
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
+/**
+  * @brief   If the LIR_Click bit is not set, the interrupt is kept high
+  *          for the duration of the latency window.
+  *          If the LIR_Click bit is set, the interrupt is kept high until the
+  *          CLICK_SRC(39h) register is read.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      Get the values of lir_click in reg CLICK_THS
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_tap_notification_mode_get(stmdev_ctx_t *ctx,
+                                         lis3dh_lir_click_t *val)
+{
+  lis3dh_click_ths_t click_ths;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg( LIS3DH_CLICK_THS, (uint8_t *)&click_ths,1);
+  SENSOR_DESELECT();
+
+  switch (click_ths.lir_click) {
+    case LIS3DH_TAP_PULSED:
+      *val = LIS3DH_TAP_PULSED;
+      break;
+
+    case LIS3DH_TAP_LATCHED:
+      *val = LIS3DH_TAP_LATCHED;
+      break;
+
+    default:
+      *val = LIS3DH_TAP_PULSED;
+      break;
+  }
+
+  return ret;
+}
+
+/**
+  * @brief  The maximum time (1 LSB = 1/ODR) interval that can elapse
+  *         between the start of the click-detection procedure and when the
+  *         acceleration falls back below the threshold.[set]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of tli in reg TIME_LIMIT
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_shock_dur_set(uint8_t val)
+{
+  lis3dh_time_limit_t time_limit;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_TIME_LIMIT, (uint8_t *)&time_limit,1);
+
+  if (ret == 0) {
+    time_limit.tli = val;
+    ret = sensor_common_write_reg(LIS3DH_TIME_LIMIT, (uint8_t *)&time_limit,1);
+  }
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
+/**
+  * @brief  The maximum time (1 LSB = 1/ODR) interval that can elapse between
+  *         the start of the click-detection procedure and when the
+  *         acceleration falls back below the threshold.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of tli in reg TIME_LIMIT
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_shock_dur_get(uint8_t *val)
+{
+  lis3dh_time_limit_t time_limit;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg( LIS3DH_TIME_LIMIT, (uint8_t *)&time_limit,1);
+  SENSOR_DESELECT();
+  *val = (uint8_t)time_limit.tli;
+  return ret;
+}
+
+/**
+  * @brief  The time (1 LSB = 1/ODR) interval that starts after the first
+  *         click detection where the click-detection procedure is
+  *         disabled, in cases where the device is configured for
+  *         double-click detection.[set]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of tla in reg TIME_LATENCY
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_quiet_dur_set(uint8_t val)
+{
+  lis3dh_time_latency_t time_latency;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_TIME_LATENCY, (uint8_t *)&time_latency,1);
+
+  if (ret == 0) {
+    time_latency.tla = val;
+    ret = sensor_common_write_reg(LIS3DH_TIME_LATENCY, (uint8_t *)&time_latency,1);
+  }
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
+/**
+  * @brief  The time (1 LSB = 1/ODR) interval that starts after the first
+  *         click detection where the click-detection procedure is
+  *         disabled, in cases where the device is configured for
+  *         double-click detection.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of tla in reg TIME_LATENCY
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_quiet_dur_get(uint8_t *val)
+{
+  lis3dh_time_latency_t time_latency;
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg( LIS3DH_TIME_LATENCY, (uint8_t *)&time_latency,1);
+  SENSOR_DESELECT();
+  *val = (uint8_t)time_latency.tla;
+  return ret;
+}
+
+/**
+  * @brief  The maximum interval of time (1 LSB = 1/ODR) that can elapse
+  *         after the end of the latency interval in which the click-detection
+  *         procedure can start, in cases where the device is configured
+  *         for double-click detection.[set]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of tw in reg TIME_WINDOW
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_double_tap_timeout_set(uint8_t val)
+{
+  lis3dh_time_window_t time_window;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_TIME_WINDOW, (uint8_t *)&time_window,1);
+
+  if (ret == 0) {
+    time_window.tw = val;
+    ret = sensor_common_write_reg(LIS3DH_TIME_WINDOW, (uint8_t *)&time_window,1);
+  }
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
+/**
+  * @brief  The maximum interval of time (1 LSB = 1/ODR) that can elapse
+  *         after the end of the latency interval in which the
+  *         click-detection procedure can start, in cases where the device
+  *         is configured for double-click detection.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of tw in reg TIME_WINDOW
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_double_tap_timeout_get(uint8_t *val)
+{
+  lis3dh_time_window_t time_window;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg( LIS3DH_TIME_WINDOW, (uint8_t *)&time_window,1);
+  SENSOR_DESELECT();
+  *val = (uint8_t)time_window.tw;
+  return ret;
+}
+
+
+/**
+  * @brief  Int1 pin routing configuration register.[set]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      registers CTRL_REG3
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_pin_int1_config_set(lis3dh_ctrl_reg3_t *val)
+{
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_write_reg( LIS3DH_CTRL_REG3, (uint8_t *)val,1);
+  SENSOR_DESELECT();
+  return ret;
+}
+
+/**
+  * @brief  Int1 pin routing configuration register.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      registers CTRL_REG3
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_pin_int1_config_get(lis3dh_ctrl_reg3_t *val)
+{
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg( LIS3DH_CTRL_REG3, (uint8_t *)val,1);
+  SENSOR_DESELECT();
+  return ret;
+}
+
+
+/**
+  * @brief  Tap/Double Tap generator configuration register.[set]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      registers CLICK_CFG
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_tap_conf_set(lis3dh_click_cfg_t *val)
+{
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_write_reg( LIS3DH_CLICK_CFG, (uint8_t *)val,1);
+  SENSOR_DESELECT();
+  return ret;
+}
+
+/**
+  * @brief  Tap/Double Tap generator configuration register.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      registers CLICK_CFG
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_tap_conf_get(lis3dh_click_cfg_t *val)
+{
+  int32_t ret; 
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg( LIS3DH_CLICK_CFG, (uint8_t *)val,1);
+  SENSOR_DESELECT();
+  return ret;
+}
+
+
+/**
+  * @brief  Interrupt generator 1 configuration register.[set]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      register INT1_CFG
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_int1_gen_conf_set(lis3dh_int1_cfg_t *val)
+{
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_write_reg( LIS3DH_INT1_CFG, (uint8_t *)val,1);
+  SENSOR_DESELECT();
+  return ret;
+}
+
+/**
+  * @brief  Interrupt generator 1 configuration register.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      register INT1_CFG
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_int1_gen_conf_get(lis3dh_int1_cfg_t *val)
+{
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg( LIS3DH_INT1_CFG, (uint8_t *)val,1);
+  SENSOR_DESELECT();
+  return ret;
+}
+
+/**
+  * @brief  Interrupt generator 1 source register.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      Registers INT1_SRC
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_int1_gen_source_get(lis3dh_int1_src_t *val)
+{
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg( LIS3DH_INT1_SRC, (uint8_t *)val,1);
+  SENSOR_DESELECT();
+  return ret;
+}
+/**
+  * @brief  User-defined threshold value for xl interrupt event on
+  *         generator 1.[set]
+  *         LSb = 16mg@2g / 32mg@4g / 62mg@8g / 186mg@16g
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of ths in reg INT1_THS
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_int1_gen_threshold_set(uint8_t val)
+{
+  lis3dh_int1_ths_t int1_ths;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_INT1_THS, (uint8_t *)&int1_ths,1);
+
+  if (ret == 0) {
+    int1_ths.ths = val;
+    ret = sensor_common_write_reg(LIS3DH_INT1_THS, (uint8_t *)&int1_ths,1);
+  }
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
+/**
+  * @brief  User-defined threshold value for xl interrupt event on
+  *         generator 1.[get]
+  *         LSb = 16mg@2g / 32mg@4g / 62mg@8g / 186mg@16g
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of ths in reg INT1_THS
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_int1_gen_threshold_get(uint8_t *val)
+{
+  lis3dh_int1_ths_t int1_ths;
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg( LIS3DH_INT1_THS, (uint8_t *)&int1_ths,1);
+  SENSOR_DESELECT();
+  *val = (uint8_t)int1_ths.ths;
+  return ret;
+}
+
+/**
+  * @brief  The minimum duration (LSb = 1/ODR) of the Interrupt 1 event to be
+  *         recognized.[set]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of d in reg INT1_DURATION
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_int1_gen_duration_set(uint8_t val)
+{
+  lis3dh_int1_duration_t int1_duration;
+  int32_t ret;
+
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg(LIS3DH_INT1_DURATION, (uint8_t *)&int1_duration,1);
+
+  if (ret == 0) {
+    int1_duration.d = val;
+    ret = sensor_common_write_reg(LIS3DH_INT1_DURATION, (uint8_t *)&int1_duration,1);
+  }
+  SENSOR_DESELECT();
+
+  return ret;
+}
+
+/**
+  * @brief  The minimum duration (LSb = 1/ODR) of the Interrupt 1 event to be
+  *         recognized.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      change the values of d in reg INT1_DURATION
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_int1_gen_duration_get(uint8_t *val)
+{
+  lis3dh_int1_duration_t int1_duration;
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg( LIS3DH_INT1_DURATION, (uint8_t *)&int1_duration,1);
+  SENSOR_DESELECT();
+  *val = (uint8_t)int1_duration.d;
+  return ret;
+}
+
+/**
+  * @brief  Tap/Double Tap generator source register.[get]
+  *
+  * @param  ctx      read / write interface definitions
+  * @param  val      registers CLICK_SRC
+  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  *
+  */
+int32_t lis3dh_tap_source_get(lis3dh_click_src_t *val)
+{
+  int32_t ret;
+  SENSOR_SELECT();
+  ret = sensor_common_read_reg( LIS3DH_CLICK_SRC, (uint8_t *)val,1);
+  SENSOR_DESELECT();
+  return ret;
+}
+
+
+/**
   * @brief  Acceleration output value.[get]
   *
   * @param  ctx      read / write interface definitions
@@ -749,9 +1247,13 @@ int32_t lis3dh_acceleration_raw_get(int16_t *val)
     for(int i=0;i<6;i++) {
       success = sensor_common_read_reg( LIS3DH_OUT_X_L+i*(sizeof(uint8_t)), (uint8_t *)(buff+i*(sizeof(uint8_t))), 1);
     }
-  // success = sensor_common_read_reg( LIS3DH_OUT_X_L, (uint8_t *)buff, 6);
+  // success = sensor_common_read_reg_increment( LIS3DH_OUT_X_L, (uint8_t) 6, (uint8_t *)buff, 6);
   // success = sensor_common_read_reg( LIS3DH_OUT_Y_L, (uint8_t *)buff+2, 2);
   // success = sensor_common_read_reg( LIS3DH_OUT_Z_L, (uint8_t *)buff+4, 2);
+
+  // board_i2c_write_single(LIS3DH_OUT_X_L);
+  // board_i2c_read((uint8_t *)buff, 6);
+
   SENSOR_DESELECT();
 
   if(success) {
@@ -815,6 +1317,48 @@ void lis_config_fifo_mode() {
   PRINTF((ret!= -1)?"":"LIS FIFO ERROR\n");
 }
 
+void lis_config_tap_mode() {
+  lis3dh_ctrl_reg3_t ctrl_reg3;
+  lis3dh_click_cfg_t click_cfg;
+  int32_t ret;
+
+  /* Set Output Data Rate
+   * The recommended accelerometer ODR for single and
+   * double-click recognition is 400 Hz or higher */
+  ret = lis3dh_data_rate_set(LIS3DH_ODR_400Hz);
+  PRINTF((ret!= -1)?"":"LIS RATE ERROR1\n");
+  /* Set full scale to 2 g */
+  ret = lis3dh_full_scale_set(LIS3DH_2g);
+  PRINTF((ret!= -1)?"":"LIS SCALE ERROR1\n");
+  /* Set click threshold to 12h  -> 0.281 g
+   * 1 LSB = full scale/128
+   * Set TIME_LIMIT to 33h -> 127 ms.
+   * 1 LSB = 1/ODR */
+  ret = lis3dh_tap_threshold_set(0x24); //0x12
+  PRINTF((ret!= -1)?"":"LIS THS ERROR\n");
+  // ret = lis3dh_shock_dur_set(0x33);
+  // PRINTF((ret!= -1)?"":"LIS DUR ERROR\n");
+  /* Enable Click interrupt on INT pin 1 */
+  ret = lis3dh_pin_int1_config_get(&ctrl_reg3);
+  PRINTF((ret!= -1)?"":"LIS INT1G ERROR\n");
+  ctrl_reg3.i1_click = PROPERTY_ENABLE;
+  ret = lis3dh_pin_int1_config_set(&ctrl_reg3);
+  PRINTF((ret!= -1)?"":"LIS INT1S ERROR\n");
+  ret = lis3dh_int1_gen_duration_set(0);
+  PRINTF((ret!= -1)?"":"LIS INT1DUR ERROR\n");
+  /* Enable single click on all axis */
+  ret = lis3dh_tap_conf_get(&click_cfg);
+  PRINTF((ret!= -1)?"":"LIS TAPG ERROR\n");
+  click_cfg.xs = PROPERTY_ENABLE;
+  click_cfg.ys = PROPERTY_ENABLE;
+  click_cfg.zs = PROPERTY_ENABLE;
+  ret = lis3dh_tap_conf_set(&click_cfg);
+  PRINTF((ret!= -1)?"":"LIS TAPS ERROR\n");
+  /* Set device in HR mode */
+  ret = lis3dh_operating_mode_set(LIS3DH_NM_10bit);  
+  PRINTF((ret!= -1)?"":"LIS MODE ERROR\n");
+}
+
 void lis_config_single_mode() {
   int32_t ret;
 
@@ -854,9 +1398,9 @@ notify_ready(void *not_used)
   //   PRINTF("LIS is: %02X\n",whoamI);
   // }
 
-  lis_config_fifo_mode();
-
+  // lis_config_fifo_mode();
   // lis_config_single_mode();
+  lis_config_tap_mode();
 
   PRINTF("LIS has been configured\n");
 }
@@ -903,6 +1447,20 @@ acc_read(int16_t *data)
     uint8_t num = 0;
     lis3dh_reg_t reg;   
     bool ready = false;
+    lis3dh_click_src_t src;
+
+    /*
+     * Read INT pin 1 in polling mode
+     * or read src status register
+     */
+    lis3dh_tap_source_get(&src);
+
+    if (src.sclick) {
+      PRINTF("click detected : x %d, y %d, z %d, sign %d\n",src.x, src.y, src.z, src.sign);
+    }
+    else {
+      PRINTF("No click detected\n");
+    }
 
     /* Read output only if new value available */
     lis3dh_xl_data_ready_get( &reg.byte);
@@ -933,7 +1491,7 @@ acc_read(int16_t *data)
       lis3dh_acceleration_raw_get( lis_buff);
 
       // delay_ms(10);
-      PRINTF("[");
+      PRINTF("[%02X,",count);
       for(int i=0;i<3;i++) {
         // PRINTF("Acceleration [mg]:%4.2f\t%4.2f\t%4.2f\r\n",
         //       acceleration_mg[0], acceleration_mg[1], acceleration_mg[2]);
@@ -942,6 +1500,7 @@ acc_read(int16_t *data)
       PRINTF("]\n");
 
       ready=false;
+      count++;
       // num=0;
     }
   } 
