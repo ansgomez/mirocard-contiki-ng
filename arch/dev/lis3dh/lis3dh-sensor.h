@@ -36,6 +36,24 @@
 /* Data sizes */
 #define DATA_SIZE              6
 
+/*
+ * Wait SENSOR_BOOT_DELAY ticks for the sensor to boot and
+ * SENSOR_STARTUP_DELAY for readings to be ready
+ * Gyro is a little slower than Acc
+ */
+#define SENSOR_BOOT_DELAY     10
+#define SENSOR_STARTUP_DELAY  10
+
+/*---------------------------------------------------------------------------*/
+#define LIS_SENSOR_TYPE_OFF         0
+#define LIS_SENSOR_TYPE_FIFO        1
+#define LIS_SENSOR_TYPE_TAP         2
+#define LIS_SENSOR_TYPE_SINGLE      3
+
+#define SENSOR_STATE_DISABLED     0
+#define SENSOR_STATE_BOOTING      1
+#define SENSOR_STATE_ENABLED      2
+
 /*---------------------------------------------------------------------------*/
 extern const struct sensors_sensor lis3dh_sensor;
 /*---------------------------------------------------------------------------*/

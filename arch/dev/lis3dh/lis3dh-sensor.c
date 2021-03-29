@@ -62,12 +62,6 @@
 /* Delay */
 #define delay_ms(i) (ti_lib_cpu_delay(8000 * (i)))
 /*---------------------------------------------------------------------------*/
-#define SENSOR_STATE_DISABLED     0
-#define SENSOR_STATE_BOOTING      1
-#define SENSOR_STATE_ENABLED      2
-
-static int state = SENSOR_STATE_DISABLED;
-/*---------------------------------------------------------------------------*/
 /* 3 16-byte words for all sensor readings */
 #define SENSOR_DATA_BUF_SIZE   3
 
@@ -75,20 +69,13 @@ int16_t lis_buff[3];
 static int16_t sensor_value[SENSOR_DATA_BUF_SIZE];
 // static float acceleration_mg[SENSOR_DATA_BUF_SIZE];
 /*---------------------------------------------------------------------------*/
-/*
- * Wait SENSOR_BOOT_DELAY ticks for the sensor to boot and
- * SENSOR_STARTUP_DELAY for readings to be ready
- * Gyro is a little slower than Acc
- */
-#define SENSOR_BOOT_DELAY     10
-#define SENSOR_STARTUP_DELAY  10
+static int state = SENSOR_STATE_DISABLED;
+static int config = LIS_SENSOR_TYPE_FIFO;
 
-static struct ctimer startup_timer;
 /*---------------------------------------------------------------------------*/
 /* Wait for the MPU to have data ready */
 rtimer_clock_t t0;
 
-// int32_t ret;
 uint8_t whoamI=0;
 uint8_t i2c_buff[6];
 uint16_t count=0;
@@ -98,10 +85,8 @@ uint16_t count=0;
  * first time we read the sensor status, it should be ready to return data
  */
 #define READING_WAIT_TIMEOUT 10
-
+static struct ctimer startup_timer;
 /*---------------------------------------------------------------------------*/
-
-
 int32_t lis3dh_get(uint8_t *buff, uint8_t len){
   int32_t ret;
   ret = 0;
@@ -1269,13 +1254,13 @@ int32_t lis3dh_acceleration_raw_get(int16_t *val)
   bool success;  
   
   SENSOR_SELECT();
-    for(int i=0;i<6;i++) {
-      success = sensor_common_read_reg( LIS3DH_OUT_X_L+i*(sizeof(uint8_t)), (uint8_t *)(buff+i*(sizeof(uint8_t))), 1);
-    }
+  for(int i=0;i<6;i++) {
+    success = sensor_common_read_reg( LIS3DH_OUT_X_L+i*(sizeof(uint8_t)), (uint8_t *)(buff+i*(sizeof(uint8_t))), 1);
+  }
+  // TODO: Change loop to multi-byte read.
   // success = sensor_common_read_reg_increment( LIS3DH_OUT_X_L, (uint8_t) 6, (uint8_t *)buff, 6);
   // success = sensor_common_read_reg( LIS3DH_OUT_Y_L, (uint8_t *)buff+2, 2);
   // success = sensor_common_read_reg( LIS3DH_OUT_Z_L, (uint8_t *)buff+4, 2);
-
   // board_i2c_write_single(LIS3DH_OUT_X_L);
   // board_i2c_read((uint8_t *)buff, 6);
 
@@ -1289,13 +1274,15 @@ int32_t lis3dh_acceleration_raw_get(int16_t *val)
     val[2] = (int16_t)buff[5];
     val[2] = (val[2] * 256) +  (int16_t)buff[4];
 
-    // printf("RAW values: :");
-    // for(int i=0;i<6;i++) {
-    //   // PRINTF("Acceleration [mg]:%4.2f\t%4.2f\t%4.2f\r\n",
-    //   //       acceleration_mg[0], acceleration_mg[1], acceleration_mg[2]);
-    //   PRINTF("%d,",buff[i]);
-    // }
-    // PRINTF("\n");
+#ifdef DEBUG_REGISTERS
+    printf("RAW values: :");
+    for(int i=0;i<6;i++) {
+      // PRINTF("Acceleration [mg]:%4.2f\t%4.2f\t%4.2f\r\n",
+      //       acceleration_mg[0], acceleration_mg[1], acceleration_mg[2]);
+      PRINTF("%d,",buff[i]);
+    }
+    PRINTF("\n");
+#endif
   } else {
     PRINTF("Failed to get raw data\n");
   }
@@ -1415,23 +1402,21 @@ notify_ready(void *not_used)
   state = SENSOR_STATE_ENABLED;
   sensors_changed(&lis3dh_sensor);
 
+  switch(config) {
+    case LIS_SENSOR_TYPE_FIFO:
+      lis_config_fifo_mode();
+      break;
+    case LIS_SENSOR_TYPE_SINGLE:
+      lis_config_single_mode();
+      break;
+    case LIS_SENSOR_TYPE_TAP:
+      lis_config_tap_mode();
+    default:
+      lis_config_fifo_mode();
+      break;
+  }
 
-  uint8_t whoamI=1;
-
-  // /*  Check device ID */
-  // lis3dh_device_id_get(&whoamI);
-  // if(ret == -1) {
-  //   PRINTF("LIS WHO ERROR\n");
-  // }
-  // else {
-  //   PRINTF("LIS is: %02X\n",whoamI);
-  // }
-
-  // lis_config_fifo_mode();
-  // lis_config_single_mode();
-  lis_config_tap_mode();
-
-  PRINTF("LIS has been configured\n");
+  PRINTF("LIS has been configured with type: %d\n", config);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -1473,6 +1458,107 @@ int_status(void)
   return src.sclick;
 }
 
+static bool acc_read_fifo () {
+  bool success=false;
+  int32_t ret;
+  uint8_t flags;
+  uint8_t num = 0;
+  lis3dh_reg_t reg;   
+  bool ready = false;
+
+  /* Read output only if new value available */
+  lis3dh_xl_data_ready_get( &reg.byte);
+
+  // lis3dh_fifo_fth_flag_get(&num);
+  // printf("FIFO threshold %u\n", num);
+
+  // /* Check if FIFO level over threshold */
+  // lis3dh_fifo_fth_flag_get( &flags);
+  // printf("FIFO watermark %u\n", flags);
+
+  /* Read number of sample in FIFO */
+  // lis3dhh_fifo_full_flag_get( &num);
+  lis3dh_fifo_data_level_get( &num );
+  printf("FIFO size %u\n", num);
+
+  while (num-- > 0) {
+    // memset(lis_buff, 0x00, 3 * sizeof(int16_t));
+    // memset(acceleration_mg, 0x00, 3 * sizeof(int16_t));
+    /* Read XL samples */
+    ret=lis3dh_acceleration_raw_get( lis_buff);
+
+    if(ret == 0) {
+      success=false;
+      break;
+    }
+    else{
+      success=true;
+    }
+
+    // delay_ms(10);
+    PRINTF("[%02X,",count);
+    for(int i=0;i<3;i++) {
+      // PRINTF("Acceleration [mg]:%4.2f\t%4.2f\t%4.2f\r\n",
+      //       acceleration_mg[0], acceleration_mg[1], acceleration_mg[2]);
+      PRINTF("%04x,",lis_buff[i]);
+    }
+    PRINTF("]\n");
+
+    count++;
+  }
+
+  return success;
+}
+
+static bool acc_read_single () {
+  bool success;
+  int32_t ret;
+
+    // memset(lis_buff, 0x00, 3 * sizeof(int16_t));
+  // memset(acceleration_mg, 0x00, 3 * sizeof(int16_t));
+  /* Read XL samples */
+  ret=lis3dh_acceleration_raw_get( lis_buff);
+
+  if(ret == 0) {
+    success=false;
+  }
+  else{
+    success=true;
+  }
+
+  return success;
+}
+
+static bool acc_read_tap () {
+  bool success;
+  int32_t ret;
+  lis3dh_click_src_t src;
+
+  /*
+  * Read INT pin 1 in polling mode
+  * or read src status register
+  */
+  rtimer_clock_t   t0 = RTIMER_NOW();
+
+  while(!int_status() &&
+        (RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + READING_WAIT_TIMEOUT)));
+
+
+  ret = lis3dh_tap_source_get(&src);
+  if (src.sclick) {
+    PRINTF("click detected : x %d, y %d, z %d, sign %d\n",src.x, src.y, src.z, src.sign);
+  }
+
+  if(ret==0) {
+    success = false;
+  }
+  else {
+    success = true;
+  }
+
+  return success;
+}
+
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Read data from the accelerometer - X, Y, Z - 3 words
@@ -1481,102 +1567,35 @@ int_status(void)
 static bool
 acc_read(int16_t *data)
 {
-  bool success;
+  bool success=false;
 
-  // if(interrupt_status & BIT_RAW_RDY_EN) 
-  // while (1) 
-  {
-    uint8_t flags;
-    uint8_t num = 0;
-    lis3dh_reg_t reg;   
-    bool ready = false;
-    lis3dh_click_src_t src;
+#ifdef DEBUG_REGISTERS
+  print_register(LIS3DH_CTRL_REG0);
+  print_register(LIS3DH_CTRL_REG1);
+  print_register(LIS3DH_CTRL_REG2);
+  print_register(LIS3DH_CTRL_REG3);
+  print_register(LIS3DH_CTRL_REG4);
+  print_register(LIS3DH_CTRL_REG5);
+  print_register(LIS3DH_CTRL_REG6);
+  print_register(LIS3DH_STATUS_REG);
+  print_register(LIS3DH_FIFO_CTRL_REG);
+  print_register(LIS3DH_OUT_X_L);
+  print_register(LIS3DH_OUT_X_H);
+  print_register(LIS3DH_OUT_Y_L);
+  print_register(LIS3DH_OUT_Y_H);
+  print_register(LIS3DH_OUT_Z_L);
+  print_register(LIS3DH_OUT_Z_H);
+#endif 
 
-    /*
-     * Read INT pin 1 in polling mode
-     * or read src status register
-     */
-    rtimer_clock_t   t0 = RTIMER_NOW();
-
-    while(!int_status() &&
-          (RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + READING_WAIT_TIMEOUT)));
-
-
-    lis3dh_tap_source_get(&src);
-    if (src.sclick) {
-      PRINTF("click detected : x %d, y %d, z %d, sign %d\n",src.x, src.y, src.z, src.sign);
-    }
-  
-    // lis3dh_tap_source_get(&src);
-    // if (src.sclick) {
-    //   PRINTF("click detected : x %d, y %d, z %d, sign %d\n",src.x, src.y, src.z, src.sign);
-    // }
-    // else {
-    //   PRINTF("No click detected\n");
-    // }
-
-    /* Read output only if new value available */
-    lis3dh_xl_data_ready_get( &reg.byte);
-
-    // if (reg.byte) {
-    //   PRINTF("DATA ready\n");
-    //   ready=true;
-    // } else {
-    //   PRINTF("DATA not ready");
-    // }
-
-    // lis3dh_fifo_fth_flag_get(&num);
-    // printf("FIFO threshold %u\n", num);
-
-    // /* Check if FIFO level over threshold */
-    // lis3dh_fifo_fth_flag_get( &flags);
-    // printf("FIFO watermark %u\n", flags);
-  
-    /* Read number of sample in FIFO */
-    // lis3dhh_fifo_full_flag_get( &num);
-    lis3dh_fifo_data_level_get( &num );
-    printf("FIFO size %u\n", num);
-
-    while (num-- > 0 || (ready)) {
-      // memset(lis_buff, 0x00, 3 * sizeof(int16_t));
-      // memset(acceleration_mg, 0x00, 3 * sizeof(int16_t));
-      /* Read XL samples */
-      lis3dh_acceleration_raw_get( lis_buff);
-
-      // delay_ms(10);
-      PRINTF("[%02X,",count);
-      for(int i=0;i<3;i++) {
-        // PRINTF("Acceleration [mg]:%4.2f\t%4.2f\t%4.2f\r\n",
-        //       acceleration_mg[0], acceleration_mg[1], acceleration_mg[2]);
-        PRINTF("%04x,",lis_buff[i]);
-      }
-      PRINTF("]\n");
-
-      ready=false;
-      count++;
-      // num=0;
-    }
-  } 
-  // else {
-  //   /* Data not ready */
-  //   success = false;
-  // }
-
-  // print_register(LIS3DH_CTRL_REG0);
-  // print_register(LIS3DH_CTRL_REG1);
-  // print_register(LIS3DH_CTRL_REG2);
-  // print_register(LIS3DH_CTRL_REG3);
-  // print_register(LIS3DH_CTRL_REG4);
-  // print_register(LIS3DH_CTRL_REG5);
-  // print_register(LIS3DH_CTRL_REG6);
-  // print_register(LIS3DH_STATUS_REG);
-  // print_register(LIS3DH_FIFO_CTRL_REG);
-  // print_register(LIS3DH_OUT_X_L);
-  // print_register(LIS3DH_OUT_X_H);
-  // print_register(LIS3DH_OUT_Y_L);
-  // print_register(LIS3DH_OUT_Y_H);
-  // print_register(LIS3DH_OUT_Z_L);
-  // print_register(LIS3DH_OUT_Z_H);
+  if(config == LIS_SENSOR_TYPE_FIFO) {
+    success = acc_read_fifo();
+  } else if (config == LIS_SENSOR_TYPE_SINGLE) {
+    success = acc_read_single();
+  } else if (config == LIS_SENSOR_TYPE_TAP) {
+    success = acc_read_tap();
+  } else {
+    ("Unrecognized sensor type ACC_READ\n");
+  }
 
   success=true;
 
@@ -1639,6 +1658,8 @@ configure(int type, int enable)
     ti_lib_gpio_set_dio(BOARD_IOID_MPU_POWER);
     break;
   case SENSORS_ACTIVE:
+    config = enable;
+
     if(enable) {
       PRINTF("LIS: Enabling2\n");
       power_up();
@@ -1655,7 +1676,7 @@ configure(int type, int enable)
 
       state = SENSOR_STATE_BOOTING;
     } else {
-      // PRINTF("LIS: Disabling\n");
+      PRINTF("LIS: Disabling\n");
       // if(HWREG(GPIO_BASE + GPIO_O_DOUT31_0) & BOARD_MPU_POWER) {
       //   /* Then check our state */
       //   ctimer_stop(&startup_timer);
