@@ -122,7 +122,7 @@ PROCESS_THREAD(transient_app_process, ev, data) {
   PROCESS_BEGIN();
   /*-------------------------------------------------------------------------*/
 
-  lis3dh_sensor.configure(SENSORS_ACTIVE, 1);
+  lis3dh_sensor.configure(SENSORS_ACTIVE, LIS_SENSOR_TYPE_FIFO);
 
   // check reset source for power on reset and clear flags
   state = (uint8_t)ti_lib_sys_ctrl_reset_source_get();
