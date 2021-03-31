@@ -25,7 +25,7 @@ for j in range(1,4):
 #print(data)
 
 plt.plot(data['Timestamp'], data['x_value'], label = "x_value")
-plt.plot(data['Timestamp'], data['y_value'], label = "y_label")
+plt.plot(data['Timestamp'], data['y_value'], label = "y_value")
 plt.plot(data['Timestamp'], data['z_value'], label = "z_value")
 plt.legend()
 plt.savefig("test_fig.png")
