@@ -103,7 +103,7 @@ static void
 get_lis_reading()
 {
   int value = lis3dh_sensor.value(0);
-  printf("Value: %d\n", value);
+  //printf("Value: %d\n", value);
 
   // SENSORS_DEACTIVATE(lis3dh_sensor); 
 }

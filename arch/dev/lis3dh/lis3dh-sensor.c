@@ -1479,7 +1479,7 @@ static bool acc_read_fifo () {
   /* Read number of sample in FIFO */
   // lis3dhh_fifo_full_flag_get( &num);
   lis3dh_fifo_data_level_get( &num );
-  printf("FIFO size %u\n", num);
+  //printf("FIFO size %u\n", num);
 
   while (num-- > 0) {
     // memset(lis_buff, 0x00, 3 * sizeof(int16_t));
