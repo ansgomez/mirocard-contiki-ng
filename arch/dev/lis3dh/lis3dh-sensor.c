@@ -1311,7 +1311,7 @@ void lis_config_fifo_mode() {
   ret = lis3dh_operating_mode_set(LIS3DH_NM_10bit);
   PRINTF((ret!= -1)?"":"LIS BIT ERROR\n");
   /* Set FIFO watermark to 25 samples */
-  ret = lis3dh_fifo_watermark_set(2);
+  ret = lis3dh_fifo_watermark_set(20);
   PRINTF((ret!= -1)?"":"LIS WTM ERROR\n");
   /* Set FIFO mode to Stream mode: Accumulate samples and
    * override old data */
@@ -1611,7 +1611,7 @@ static int
 value(int type)
 {
   int rv;
-    lis3dh_reg_t reg;
+  lis3dh_reg_t reg;
 
   if(state == SENSOR_STATE_DISABLED) {
     PRINTF("LIS: Sensor Disabled\n");

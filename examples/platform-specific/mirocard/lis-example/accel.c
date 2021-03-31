@@ -165,9 +165,9 @@ PROCESS_THREAD(transient_app_process, ev, data) {
     // wait here for an event to happen
     PROCESS_WAIT_EVENT();
 
-    if(data == &lis3dh_sensor) {
-      get_lis_reading();
-    }
+    // if(data == &lis3dh_sensor) {
+    //   get_lis_reading();
+    // }
 
     // if the event is the timer event as expected...
     if(ev == PROCESS_EVENT_TIMER)
