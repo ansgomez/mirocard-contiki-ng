@@ -65,7 +65,7 @@
 
 #include "ambient-tx.h"
 /*---------------------------------------------------------------------------*/
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #if !(CC26XX_UART_CONF_ENABLE)

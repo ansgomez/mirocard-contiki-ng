@@ -122,6 +122,7 @@
 #define BOARD_IOID_EMU_STATUS     IOID_24
 #define BOARD_IOID_EMU_COMP       IOID_25
 #define BOARD_IOID_EMU_VBUF       IOID_26
+#define BOARD_IOID_EMU_TLV       IOID_27
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
