@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018, Swiss Federal Institute of Technology (ETH Zurich)
- * Copyright (c) 2020, Miromico AG - http://www.miromico.ch/
+ * Copyright (c) 2020, Andres Gomez, Miromico AG
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
