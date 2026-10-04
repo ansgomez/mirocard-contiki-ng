@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
- * Copyright (c) 2020, Andres Gomez, Miromico AG
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,58 +28,16 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*---------------------------------------------------------------------------*/
-/**
- * \addtogroup sensortag-cc26xx-peripherals
- * @{
- *
- * \defgroup sensortag-cc26xx-sensor-common SensorTag 2.0 Sensors
- * @{
- *
- * \file
- * Header file for the Sensortag Common sensor utilities
- */
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
-#ifndef SENSOR_H
-#define SENSOR_H
+/* Enable the ROM bootloader */
+#define CCXXWARE_CONF_ROM_BOOTLOADER_ENABLE   1
 /*---------------------------------------------------------------------------*/
-#include "board-i2c.h"
-
-#include <stdbool.h>
-#include <stdint.h>
+/* Change to match your configuration */
+#define IEEE802154_CONF_PANID            0xABCD
+#define IEEE802154_CONF_DEFAULT_CHANNEL      25
+#define RF_BLE_CONF_ENABLED                   1
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Reads a sensor's register over I2C
- * \param addr The address of the register to read
- * \param buf Pointer to buffer to place data
- * \param len Number of bytes to read
- * \return TRUE if the required number of bytes are received
- *
- * The sensor must be selected before this routine is called.
- */
-bool sensor_common_read_reg(uint8_t addr, uint8_t *buf, uint8_t len);
-
-/**
- * \brief Write to a sensor's register over I2C
- * \param addr The address of the register to read
- * \param buf Pointer to buffer containing data to be written
- * \param len Number of bytes to write
- * \return TRUE if successful write
- *
- * The sensor must be selected before this routine is called.
- */
-bool sensor_common_write_reg(uint8_t addr, uint8_t *buf, uint8_t len);
-
-/**
- * \brief Fill a result buffer with dummy error data
- * \param buf Pointer to the buffer where to write the data
- * \param len Number of bytes to fill
- * \return bitmask of error flags
- */
-void sensor_common_set_error_data(uint8_t *buf, uint8_t len);
+#endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/
-#endif /* SENSOR_H */
-/*---------------------------------------------------------------------------*/
-/**
- * @}
- * @}
- */
