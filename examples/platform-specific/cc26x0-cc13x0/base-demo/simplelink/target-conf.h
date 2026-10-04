@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
- * Copyright (c) 2020, Andres Gomez, Miromico AG
+ * Copyright (c) 2020, George Oikonomou - http://www.spd.gr
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
+ *
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright
@@ -29,58 +29,20 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*---------------------------------------------------------------------------*/
-/**
- * \addtogroup sensortag-cc26xx-peripherals
- * @{
- *
- * \defgroup sensortag-cc26xx-sensor-common SensorTag 2.0 Sensors
- * @{
- *
- * \file
- * Header file for the Sensortag Common sensor utilities
- */
+#ifndef TARGET_CONF_H_
+#define TARGET_CONF_H_
 /*---------------------------------------------------------------------------*/
-#ifndef SENSOR_H
-#define SENSOR_H
-/*---------------------------------------------------------------------------*/
-#include "board-i2c.h"
+/* Platform-specific example configuration */
+#define CC26XX_DEMO_TRIGGER_1       BUTTON_HAL_ID_KEY_LEFT
+#define CC26XX_DEMO_TRIGGER_2       BUTTON_HAL_ID_KEY_RIGHT
 
-#include <stdbool.h>
-#include <stdint.h>
+#if BOARD_SENSORTAG
+#define CC26XX_DEMO_TRIGGER_3       BUTTON_HAL_ID_REED_RELAY
+#endif
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Reads a sensor's register over I2C
- * \param addr The address of the register to read
- * \param buf Pointer to buffer to place data
- * \param len Number of bytes to read
- * \return TRUE if the required number of bytes are received
- *
- * The sensor must be selected before this routine is called.
- */
-bool sensor_common_read_reg(uint8_t addr, uint8_t *buf, uint8_t len);
-
-/**
- * \brief Write to a sensor's register over I2C
- * \param addr The address of the register to read
- * \param buf Pointer to buffer containing data to be written
- * \param len Number of bytes to write
- * \return TRUE if successful write
- *
- * The sensor must be selected before this routine is called.
- */
-bool sensor_common_write_reg(uint8_t addr, uint8_t *buf, uint8_t len);
-
-/**
- * \brief Fill a result buffer with dummy error data
- * \param buf Pointer to the buffer where to write the data
- * \param len Number of bytes to fill
- * \return bitmask of error flags
- */
-void sensor_common_set_error_data(uint8_t *buf, uint8_t len);
+#define TMP_007_SENSOR_TYPE_AMBIENT TMP_007_TYPE_AMBIENT
+#define TMP_007_SENSOR_TYPE_OBJECT  TMP_007_TYPE_OBJECT
+#define TMP_007_SENSOR_TYPE_ALL     TMP_007_TYPE_ALL
 /*---------------------------------------------------------------------------*/
-#endif /* SENSOR_H */
+#endif /* TARGET_CONF_H_ */
 /*---------------------------------------------------------------------------*/
-/**
- * @}
- * @}
- */
